@@ -18,3 +18,18 @@ helloQA()
 
 gameLoop();
 
+function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Арена
+    drawArena(ctx);
+    drawRiver(ctx);
+    drawBridge(ctx);
+    
+    // Башни
+    drawPlayerTower(ctx, 150, 400);
+    drawEnemyTower(ctx, 650, 400);
+    drawKingTower(ctx, 400, 200, true);
+    
+    requestAnimationFrame(gameLoop);
+}
