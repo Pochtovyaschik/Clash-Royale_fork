@@ -81,7 +81,7 @@ window.Balance = {
         console.log(`  Player Tower: ${this.towers.player.hp}❤️`);
         console.log(`  Enemy Tower: ${this.towers.enemy.hp}❤️`);
         console.log(`Game: ${this.game.elixirRegen}⚡/sec | ${this.game.startElixir} start`);
-        console.log('⚖️ =====================');
+        console.log('⚖️ ====================');
     }
 };
 
