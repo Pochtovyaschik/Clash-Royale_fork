@@ -1,5 +1,5 @@
 
-
+/// draw river
 window.drawRiver = function(ctx) {
     ctx.fillStyle = '#4169e1';
     ctx.globalAlpha = 0.3;
@@ -15,6 +15,8 @@ window.drawRiver = function(ctx) {
         ctx.globalAlpha = 1;
     }
 }
+
+///draw bridge
 window.drawBridge = function(ctx) {
     const canvas = ctx.canvas;
     ctx.fillStyle = '#8b4513';
@@ -29,7 +31,7 @@ window.drawBridge = function(ctx) {
     }
 }
 
-
+//// draw river again???
 window.drawRiver = function(ctx) {
     ctx.fillStyle = '#4169e1';
     ctx.globalAlpha = 0.3;
@@ -46,7 +48,7 @@ window.drawRiver = function(ctx) {
     }
 }
     
-  
+///drawn arena
 window.drawArena = function(ctx) {
     ctx.fillStyle = '#228b22';
     ctx.fillRect(0, 0, 800, 600);
