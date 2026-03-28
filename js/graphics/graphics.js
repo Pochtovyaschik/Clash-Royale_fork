@@ -1,3 +1,4 @@
+
 // ГРАФИКА - отрисовка всего на канвасе
 window.Graphics = {
     ctx: null,
@@ -122,3 +123,4 @@ window.Graphics = {
         this.ctx.fillRect(unit.x - 18, unit.y - 28, 36 * percent, 4);
     }
 };
+

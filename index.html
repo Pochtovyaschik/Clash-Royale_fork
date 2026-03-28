@@ -7,7 +7,19 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <canvas id="gameCanvas" width="900" height="600"></canvas>
+    <audio id="testSound" src="assets/sounds/silent-short-click.mp3" preload="auto"></audio>
+    <canvas id="gameCanvas" width="800" height="600" style="border:1px solid black;"></canvas>
+    
+    <script src="js/state/state.js"></script>
+    <script src="js/ui/ui.js"></script>
+    <script src="js/graphics/graphics.js"></script>
+    <script src="js/sound.js"></script>
+    <script src="js/config/config.js"></script>
+    <script src="js/core/ai.js"></script>
+    <script src="js/qa.js"></script>
+    <script src="js/core/core.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/tests/ai.test.js"></script>
     
     <div class="ui-bar">
         <span id="elixirText">⚡ 5/10</span>
@@ -29,5 +41,6 @@
     <script src="js/core/core.js"></script>
     <script src="js/main.js"></script>
     <script src="js/tests/qa.js"></script>
+
 </body>
 </html>
