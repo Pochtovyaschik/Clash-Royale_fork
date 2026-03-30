@@ -16,7 +16,7 @@ window.CONFIG = {
     SOUNDS: {
         deploy: 'assets/souds/silent-short-click.mp3',
         hit: 'assets/souds/silent-short-click.mp3',
-    }
+    },
     
     // Игровые параметры
     GAME: {
