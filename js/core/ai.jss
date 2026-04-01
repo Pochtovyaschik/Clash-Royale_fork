@@ -23,19 +23,21 @@ window.AI = {
             const enemyUnits = GameState.getUnits().filter(u => !u.isPlayer).length;
             
             if (GameState.elixir >= 3 && enemyUnits < 5) {
-                // считаем юниты ИГРОКА (враги для AI)
-                const leftLaneUnits = GameState.getUnits()
-                    .filter(u => u.isPlayer && u.x < CONFIG.GAME.width / 2)
-                    .length;
+                function getLaneStrength(units, isPlayer, isLeft) {
+                    return units
+                        .filter(u => u.isPlayer === isPlayer)
+                        .filter(u => isLeft ? u.x < CONFIG.GAME.width / 2 : u.x >= CONFIG.GAME.width / 2)
+                        .reduce((sum, u) => sum + u.hp, 0);
+                }
                 
-                const rightLaneUnits = GameState.getUnits()
-                    .filter(u => u.isPlayer && u.x >= CONFIG.GAME.width / 2)
-                    .length;
+                const units = GameState.getUnits();
                 
-                // выбираем менее защищённую дорожку
-                const lane = leftLaneUnits <= rightLaneUnits ? 'left' : 'right';
+                // считаем силу ИГРОКА (врага для AI)
+                const leftStrength = getLaneStrength(units, true, true);
+                const rightStrength = getLaneStrength(units, true, false);
                 
-                const lane = leftLaneUnits <= rightLaneUnits ? 'left' : 'right';
+                // выбираем более слабую линию
+                const lane = leftStrength <= rightStrength ? 'left' : 'right';
                 const x = lane === 'left' ? 
                     CONFIG.GAME.spawn.leftX : 
                     CONFIG.GAME.spawn.rightX;
