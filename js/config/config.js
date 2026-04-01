@@ -12,6 +12,11 @@ window.CONFIG = {
         enemyTower: 'assets/images/towers/enemy_tower.png',
         kingTower: 'assets/images/towers/king_tower.png'
     },
+
+    SOUNDS: {
+        deploy: 'assets/souds/silent-short-click.mp3',
+        hit: 'assets/souds/silent-short-click.mp3',
+    },
     
     // Игровые параметры
     GAME: {
@@ -29,8 +34,8 @@ window.CONFIG = {
         
         // Позиции башен
         towers: {
-            player: { x: 450, y: 540 },
-            enemy: { x: 450, y: 60 }
+            player: { x: 425, y: 400 },
+            enemy: { x: 425, y: 200 }
         }
     }
 };

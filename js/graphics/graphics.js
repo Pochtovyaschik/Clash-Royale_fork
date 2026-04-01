@@ -76,7 +76,7 @@ window.Graphics = {
     
     drawEnemyTower: function() {
         const t = CONFIG.GAME.towers.enemy;
-        this.drawImage('enemyTower', t.x - 35, t.y - 20, 70, 80);
+        this.drawImage('enemyTower', t.x - 35, t.y - 25, 70, 80);
         
         const percent = GameState.enemyTowerHP / 1500;
         this.ctx.fillStyle = '#aa2e2e';
