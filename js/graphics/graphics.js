@@ -89,7 +89,7 @@ window.Graphics = {
     },
     
     drawKingTower: function(isPlayer) {
-        const y = isPlayer ? 570 : 15;
+        const y = isPlayer ? 520 : 65;
         this.drawImage('kingTower', 410, y - 50, 80, 90);
     },
     
