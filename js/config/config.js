@@ -16,13 +16,15 @@ window.CONFIG = {
     },
     
     SOUNDS: {
-        deploy: 'assets/sounds/deploy.mp3',
-        hit: 'assets/sounds/hit.mp3',
-        towerHit: 'assets/sounds/tower_hit.mp3',
+        deploy: 'assets/sounds/click.mp3,
+        hit: 'assets/sounds/click.mp3,
+        towerHit: 'assets/sounds/click.mp3,  
         victory: 'assets/sounds/victory.mp3',
         defeat: 'assets/sounds/defeat.mp3'
     },
-    
+    //deploy.mp3'
+//hit.mp3'
+// tower_hit.mp3'
     GAME: {
         width: 900,
         height: 600,
