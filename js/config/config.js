@@ -42,12 +42,12 @@ window.CONFIG = {
     CARDS: {
         knight: {
             name: 'Рыцарь',
-            cost: 3,
+            cost: 1,
             unitType: 'knight',
             hp: 600,
             damage: 75,
             range: 30,
-            speed: 120,
+            speed: 2,
             attackSpeed: 0.9,
             description: 'Сбалансированный боец ближнего боя',
             rarity: 'common'
@@ -59,7 +59,7 @@ window.CONFIG = {
             hp: 400,
             damage: 60,
             range: 150,
-            speed: 100,
+            speed: 1,
             attackSpeed: 1.2,
             description: 'Атакует с расстояния',
             rarity: 'common'
@@ -71,7 +71,7 @@ window.CONFIG = {
             hp: 350,
             damage: 120,
             range: 160,
-            speed: 90,
+            speed: 3,
             attackSpeed: 1.5,
             description: 'Мощная магическая атака',
             rarity: 'rare'
