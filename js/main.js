@@ -25,14 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.gameGraphics = core.graphics;
     
     console.log('🎮 Игра запущена!');
-    
-    // QA тесты
-    if (window.QA) {
-        setTimeout(() => window.QA.runAll(), 1000);
-    }
   
-    Graphics.init(ctx);
-    UI.init(canvas);
     SoundFX.init();
     GameState.startBattle();
     Core.startLoop();

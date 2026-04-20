@@ -12,7 +12,8 @@ window.CONFIG = {
         mage: 'assets/images/units/mage.png',
         playerTower: 'assets/images/towers/player_tower.png',
         enemyTower: 'assets/images/towers/enemy_tower.png',
-        kingTower: 'assets/images/towers/king_tower.png'
+        kingTower: 'assets/images/towers/king_tower.png',
+        kingEnemyTower: 'assets/images/towers/enemy_king_tower.png'
     },
     
     SOUNDS: {
@@ -20,7 +21,10 @@ window.CONFIG = {
         hit: 'assets/sounds/click.mp3',
         towerHit: 'assets/sounds/click.mp3',  
         victory: 'assets/sounds/victory.mp3',
-        defeat: 'assets/sounds/defeat.mp3'
+        defeat: 'assets/sounds/defeat.mp3',
+        cardSelect: 'assets/sounds/card-select.mp3',
+        insufficient: 'assets/sounds/error.mp3',
+        towerDestroyed: 'assets/sounds/tower-down.mp3'
     },
     GAME: {
         width: 900,
@@ -42,12 +46,12 @@ window.CONFIG = {
     CARDS: {
         knight: {
             name: 'Рыцарь',
-            cost: 3,
+            cost: 1,
             unitType: 'knight',
             hp: 600,
             damage: 75,
             range: 30,
-            speed: 120,
+            speed: 2,
             attackSpeed: 0.9,
             description: 'Сбалансированный боец ближнего боя',
             rarity: 'common'
@@ -59,7 +63,7 @@ window.CONFIG = {
             hp: 400,
             damage: 60,
             range: 150,
-            speed: 100,
+            speed: 1,
             attackSpeed: 1.2,
             description: 'Атакует с расстояния',
             rarity: 'common'
@@ -71,7 +75,7 @@ window.CONFIG = {
             hp: 350,
             damage: 120,
             range: 160,
-            speed: 90,
+            speed: 3,
             attackSpeed: 1.5,
             description: 'Мощная магическая атака',
             rarity: 'rare'

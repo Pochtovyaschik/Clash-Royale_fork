@@ -150,6 +150,26 @@ class SoundFX {
         this.enabled = value;
     }
 }
+/**
+ * Воспроизводит звук выбора карты
+ */
+playCardSelect() {
+    this.play('cardSelect');
+}
+
+/**
+ * Воспроизводит звук недостатка эликсира
+ */
+playInsufficientElixir() {
+    this.play('insufficient');
+}
+
+/**
+ * Воспроизводит звук победы над башней
+ */
+playTowerDestroyed() {
+    this.play('towerDestroyed');
+}
 
 // Экспорт глобального экземпляра (будет создан позже)
 window.SoundFX = null;
