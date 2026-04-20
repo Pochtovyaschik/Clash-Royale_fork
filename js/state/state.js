@@ -54,9 +54,10 @@ class GameState {
     deployUnit(unit) {
         const cost = unit.card ? unit.card.cost : window.CONFIG.CARDS[unit.type].cost;
         
-        if (!this.canDeploy(cost)) {
-            return false;
-        }
+        //if (!this.canDeploy(cost)) {
+         //   return false;
+        //}
+        console.log("SPAWN");
         
         this.units.push(unit);
         this.elixir -= cost;
