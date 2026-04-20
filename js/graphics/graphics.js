@@ -77,13 +77,96 @@ class Graphics {
      * Рисует игровое поле из трех слоев: трава, дорожка, река
      * Размеры берутся из window.CONFIG.GAME
      */
+    /**
+ * Рисует игровое поле с правильными дорожками к башням
+ * Структура:
+ * - Левая дорожка: от левой башни игрока к левой башне врага
+ * - Правая дорожка: от правой башни игрока к правой башне врага
+ * - Река: горизонтальная полоса в центре, пересекающая обе дорожки
+ */
     drawArena() {
-        // Фон - трава
-        this.drawTiledImage('grass', 0, 0, window.CONFIG.GAME.width, window.CONFIG.GAME.height, 50, 50);
-        // Дорожка
-        this.drawTiledImage('path', 0, 270, window.CONFIG.GAME.width, 60, 50, 50);
-        // Река
-        this.drawTiledImage('river', 0, 330, window.CONFIG.GAME.width, 20, 50, 20);
+        const width = window.CONFIG.GAME.width;
+        const height = window.CONFIG.GAME.height;
+        const centerY = height / 2;
+        
+        // 1. Фон - трава
+        this.drawTiledImage('grass', 0, 0, width, height, 50, 50);
+        
+        // 2. Левая дорожка (от левой башни игрока к левой башне врага)
+        const leftPath = {
+            startX: 150, startY: 450,  // левая башня игрока
+            endX: 150, endY: 150       // левая башня врага
+        };
+        this.drawPath(leftPath.startX, leftPath.startY, leftPath.endX, leftPath.endY, 60);
+        
+        // 3. Правая дорожка (от правой башни игрока к правой башне врага)
+        const rightPath = {
+            startX: 750, startY: 450,  // правая башня игрока
+            endX: 750, endY: 150       // правая башня врага
+        };
+        this.drawPath(rightPath.startX, rightPath.startY, rightPath.endX, rightPath.endY, 60);
+        
+        // 4. Центральная дорожка к королевской башне (опционально)
+        const kingPath = {
+            startX: 450, startY: 500,  // королевская башня игрока
+            endX: 450, endY: 100       // королевская башня врага
+        };
+        this.drawPath(kingPath.startX, kingPath.startY, kingPath.endX, kingPath.endY, 50);
+        
+        // 5. Река (пересекает дорожки в центре)
+        this.drawRiver();
+    }
+    
+    /**
+     * Рисует дорожку между двумя точками
+     * @param {number} startX - Начальная X
+     * @param {number} startY - Начальная Y
+     * @param {number} endX - Конечная X
+     * @param {number} endY - Конечная Y
+     * @param {number} width - Ширина дорожки
+     */
+    drawPath(startX, startY, endX, endY, width) {
+        // Сохраняем контекст
+        this.ctx.save();
+        
+        // Вычисляем угол поворота
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const angle = Math.atan2(dy, dx);
+        const length = Math.hypot(dx, dy);
+        
+        // Поворачиваем и рисуем
+        this.ctx.translate(startX, startY);
+        this.ctx.rotate(angle);
+        
+        // Рисуем путь с текстурой
+        this.drawTiledImage('path', 0, -width/2, length, width, 50, 50);
+        
+        // Восстанавливаем контекст
+        this.ctx.restore();
+    }
+    
+    /**
+     * Рисует реку, пересекающую дорожки
+     */
+    drawRiver() {
+        const width = window.CONFIG.GAME.width;
+        const centerY = window.CONFIG.GAME.height / 2;
+        const riverWidth = 25;
+        
+        // Река - горизонтальная полоса через всю арену
+        this.drawTiledImage('river', 0, centerY - riverWidth/2, width, riverWidth, 50, riverWidth);
+        
+        // Добавляем эффект воды (блики)
+        this.ctx.fillStyle = 'rgba(100, 200, 255, 0.3)';
+        for (let i = 0; i < 10; i++) {
+            this.ctx.fillRect(
+                50 + i * 80, 
+                centerY - 5 + Math.sin(Date.now() / 1000 + i) * 3, 
+                40, 
+                4
+            );
+        }
     }
     
     /**
@@ -112,8 +195,14 @@ class Graphics {
      * Рисует башню короля (центральную башню)
      * @param {Object} tower - Объект башни со свойствами x, y, hp, maxHp
      */
-    drawKingTower(tower) {
-        this.drawImage('kingTower', tower.x - 40, tower.y - 50, 80, 90);
+    /**
+     * Рисует башню короля (центральную башню)
+     * @param {Object} tower - Объект башни со свойствами x, y, hp, maxHp
+     * @param {boolean} isPlayer - true для башни игрока, false для врага
+     */
+    drawKingTower(tower, isPlayer = true) {
+        const imgKey = isPlayer ? 'kingTower' : 'kingEnemyTower';
+        this.drawImage(imgKey, tower.x - 40, tower.y - 50, 80, 90);
         
         const percent = tower.hp / tower.maxHp;
         this.ctx.fillStyle = '#aa2e2e';
@@ -122,6 +211,7 @@ class Graphics {
         this.ctx.fillRect(tower.x - 35, tower.y - 60, 70 * percent, 6);
         
         this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 10px monospace';
         this.ctx.fillText(`❤️ ${Math.floor(tower.hp)}`, tower.x - 20, tower.y - 63);
     }
     
