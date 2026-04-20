@@ -125,6 +125,34 @@ class Graphics {
         // 5. Река (пересекает дорожки в центре)
         this.drawRiver();
     }
+
+     /**
+     * Рисует реку, пересекающую дорожки
+     */
+    drawRiver() {
+        const width = window.CONFIG.GAME.width;
+        const centerY = window.CONFIG.GAME.height / 2;
+        const riverWidth = 25;
+    
+        // Анимация воды
+        this.waterOffset = (this.waterOffset + 0.02) % (Math.PI * 2);
+    
+        // Река - горизонтальная полоса через всю арену
+        this.drawTiledImage('river', 0, centerY - riverWidth/2, width, riverWidth, 50, riverWidth);
+    
+        // Добавляем эффект воды (блики с анимацией)
+        this.ctx.fillStyle = 'rgba(100, 200, 255, 0.4)';
+        for (let i = 0; i < 12; i++) {
+            const waveY = Math.sin(this.waterOffset + i * 0.5) * 3;
+            this.ctx.fillRect(
+                40 + i * 70, 
+                centerY - 5 + waveY, 
+                35, 
+                4
+            );
+        }
+    }
+
     
     /**
      * Рисует дорожку между двумя точками
@@ -155,32 +183,7 @@ class Graphics {
         this.ctx.restore();
     }
     
-    /**
-     * Рисует реку, пересекающую дорожки
-     */
-    drawRiver() {
-        const width = window.CONFIG.GAME.width;
-        const centerY = window.CONFIG.GAME.height / 2;
-        const riverWidth = 25;
-    
-        // Анимация воды
-        this.waterOffset = (this.waterOffset + 0.02) % (Math.PI * 2);
-    
-        // Река - горизонтальная полоса через всю арену
-        this.drawTiledImage('river', 0, centerY - riverWidth/2, width, riverWidth, 50, riverWidth);
-    
-        // Добавляем эффект воды (блики с анимацией)
-        this.ctx.fillStyle = 'rgba(100, 200, 255, 0.4)';
-        for (let i = 0; i < 12; i++) {
-            const waveY = Math.sin(this.waterOffset + i * 0.5) * 3;
-            this.ctx.fillRect(
-                40 + i * 70, 
-                centerY - 5 + waveY, 
-                35, 
-                4
-            );
-        }
-    }
+   
     
     /**
      * Рисует обычную башню (игрока или врага)
