@@ -17,6 +17,7 @@ class GameState {
         };
         this.lastElixirTime = 0;
         this.selectedCardIndex = 0;
+        this.selectedCard = null;
     }
     
     startBattle() {
@@ -45,6 +46,12 @@ class GameState {
             this.elixir = Math.min(this.elixir + 1, window.CONFIG.GAME.maxElixir);
             this.lastElixirTime = now;
         }
+        selectCard(card) {
+    this.selectedCard = card;
+    }
+    }
+    clearSelectedCard() {
+    this.selectedCard = null;
     }
     
     canDeploy(cost) {
