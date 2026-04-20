@@ -21,7 +21,10 @@ window.CONFIG = {
         hit: 'assets/sounds/click.mp3',
         towerHit: 'assets/sounds/click.mp3',  
         victory: 'assets/sounds/victory.mp3',
-        defeat: 'assets/sounds/defeat.mp3'
+        defeat: 'assets/sounds/defeat.mp3',
+        cardSelect: 'assets/sounds/card-select.mp3',
+        insufficient: 'assets/sounds/error.mp3',
+        towerDestroyed: 'assets/sounds/tower-down.mp3'
     },
     GAME: {
         width: 900,
