@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         Graphics.drawPlayerRightTower();
         Graphics.drawEnemyLeftTower();
         Graphics.drawEnemyRightTower();
-        Graphics.drawKingTower(true);
-        Graphics.drawKingTower(false);
+        Graphics.drawKingTower(towers.playerKing, true);
+        Graphics.drawKingTower(towers.enemyKing, false);
         
         const units = GameState.getUnits();
         for (let i = 0; i < units.length; i++) {
