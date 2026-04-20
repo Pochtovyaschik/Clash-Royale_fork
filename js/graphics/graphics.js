@@ -4,6 +4,7 @@
  */
 class Graphics {
     constructor(ctx) {
+        this.waterOffset = 0;
         /** @type {CanvasRenderingContext2D} Контекст Canvas для рисования */
         this.ctx = ctx;
         /** @type {Object.<string, HTMLImageElement>} Хранилище загруженных изображений */
@@ -153,17 +154,21 @@ class Graphics {
         const width = window.CONFIG.GAME.width;
         const centerY = window.CONFIG.GAME.height / 2;
         const riverWidth = 25;
-        
+    
+        // Анимация воды
+        this.waterOffset = (this.waterOffset + 0.02) % (Math.PI * 2);
+    
         // Река - горизонтальная полоса через всю арену
         this.drawTiledImage('river', 0, centerY - riverWidth/2, width, riverWidth, 50, riverWidth);
-        
-        // Добавляем эффект воды (блики)
-        this.ctx.fillStyle = 'rgba(100, 200, 255, 0.3)';
-        for (let i = 0; i < 10; i++) {
+    
+        // Добавляем эффект воды (блики с анимацией)
+        this.ctx.fillStyle = 'rgba(100, 200, 255, 0.4)';
+        for (let i = 0; i < 12; i++) {
+            const waveY = Math.sin(this.waterOffset + i * 0.5) * 3;
             this.ctx.fillRect(
-                50 + i * 80, 
-                centerY - 5 + Math.sin(Date.now() / 1000 + i) * 3, 
-                40, 
+                40 + i * 70, 
+                centerY - 5 + waveY, 
+                35, 
                 4
             );
         }
