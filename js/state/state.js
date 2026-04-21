@@ -17,6 +17,15 @@ class GameState {
         };
         this.lastElixirTime = 0;
         this.selectedCardIndex = 0;
+        // Добавить в конструктор GameState:
+        this.selectedCard = null; // Выбранная карта для размещен
+    }
+
+    selectCard(card) {
+        this.selectedCard = card;
+    }
+
+    clearSelectedCard() {
         this.selectedCard = null;
     }
     
@@ -46,12 +55,6 @@ class GameState {
             this.elixir = Math.min(this.elixir + 1, window.CONFIG.GAME.maxElixir);
             this.lastElixirTime = now;
         }
-        selectCard(card) {
-    this.selectedCard = card;
-    }
-    }
-    clearSelectedCard() {
-    this.selectedCard = null;
     }
     
     canDeploy(cost) {
@@ -61,10 +64,9 @@ class GameState {
     deployUnit(unit) {
         const cost = unit.card ? unit.card.cost : window.CONFIG.CARDS[unit.type].cost;
         
-        //if (!this.canDeploy(cost)) {
-         //   return false;
-        //}
-        console.log("SPAWN");
+        if (!this.canDeploy(cost)) {
+            return false;
+        }
         
         this.units.push(unit);
         this.elixir -= cost;
@@ -129,30 +131,6 @@ class GameState {
             window.SoundFX.playDefeat();
         }
     }
-
-    /**
- * Проверяет, может ли игрок разместить юнита в указанной позиции
- * @param {number} x - X координата
- * @param {number} y - Y координата
- * @param {string} lane - Дорожка
- * @returns {boolean}
- */
-canPlaceAt(x, y, lane) {
-    // Проверка, что позиция на своей половине поля
-    if (y < window.CONFIG.GAME.height / 2) {
-        return false;
-    }
-    
-    // Проверка, что позиция на правильной дорожке
-    const isLeftLane = (lane === 'left' && x < window.CONFIG.GAME.width / 2);
-    const isRightLane = (lane === 'right' && x > window.CONFIG.GAME.width / 2);
-    
-    if (!isLeftLane && !isRightLane && lane !== 'king') {
-        return false;
-    }
-    
-    return true;
-}
     
     getActiveTowerForUnit(unit) {
         // Возвращает ближайшую активную башню на дорожке юнита
@@ -168,6 +146,30 @@ canPlaceAt(x, y, lane) {
             if (this.towers.enemyRight.hp > 0 && lane === 'right') return this.towers.enemyRight;
             return this.towers.enemyKing;
         }
+    }
+
+    /**
+     * Проверяет, может ли игрок разместить юнита в указанной позиции
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
+     * @param {string} lane - Дорожка
+     * @returns {boolean}
+     */
+    canPlaceAt(x, y, lane) {
+        // Проверка, что позиция на своей половине поля
+        if (y < window.CONFIG.GAME.height / 2) {
+            return false;
+        }
+        
+        // Проверка, что позиция на правильной дорожке
+        const isLeftLane = (lane === 'left' && x < window.CONFIG.GAME.width / 2);
+        const isRightLane = (lane === 'right' && x > window.CONFIG.GAME.width / 2);
+        
+        if (!isLeftLane && !isRightLane && lane !== 'king') {
+            return false;
+        }
+        
+        return true;
     }
 }
 
