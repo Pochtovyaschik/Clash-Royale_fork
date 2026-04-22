@@ -83,52 +83,36 @@ class UI {
     }
     
     deployAtPosition(x, y) {
-        const card = this.deck.getCard(this.selectedCardIndex);
-        if (!card) {
-            console.log('❌ Нет карты в этой позиции');
-            this.isPlacingMode = false;
-            return;
-        }
+    const card = this.deck.getCard(this.selectedCardIndex);
+    if (!card) {
+        this.isPlacingMode = false;
+        return;
+    }
+    
+    if (!this.gameState.canDeploy(card.cost, true)) {
+        if (window.Effects) window.Effects.addInsufficientEffect(x, y);
+        this.isPlacingMode = false;
+        return;
+    }
+    
+    // Проверка типа карты
+    if (card.type === 'spell') {
+        // Применяем заклинание
+        const spell = new Spell(card.id, card);
+        const hitCount = spell.cast(x, y, this.gameState);
         
-        if (!this.gameState.canDeploy(card.cost)) {
-            console.log(`❌ Не хватает эликсира! Нужно ${card.cost}, есть ${Math.floor(this.gameState.elixir)}`);
-            this.isPlacingMode = false;
-            return;
-        }
-        
-        // Определяем дорожку по позиции X
-        const lane = x < window.CONFIG.GAME.width / 2 ? 'left' : 'right';
-        
-        // Корректируем Y для правильного положения на дорожке
-        let finalY = y;
-        if (lane === 'left') {
-            finalY = Math.max(window.CONFIG.GAME.height / 2 + 50, Math.min(window.CONFIG.GAME.height - 100, y));
-        } else {
-            finalY = Math.max(window.CONFIG.GAME.height / 2 + 50, Math.min(window.CONFIG.GAME.height - 100, y));
-        }
-        
-        // Создаем юнита
-        const unit = new Unit(
-            x, finalY, 
-            card.unitType, 
-            true,  // isPlayer
-            lane,
-            card  // ссылка на карту
-        );
-        
-        if (this.gameState.deployUnit(unit)) {
-            // Используем карту (удаляем из руки, добавляем в конец колоды)
+        if (hitCount > 0) {
+            this.gameState.spendElixir(card.cost, true);
             this.deck.useCard(this.selectedCardIndex);
-            
-            // Выходим из режима размещения
-            this.isPlacingMode = false;
-            if (this.placementTimeout) clearTimeout(this.placementTimeout);
-            
-            if (window.SoundFX) window.SoundFX.playDeploy();
-            console.log(`✅ Призван ${card.name} (${card.cost}⚡) на ${lane} дорожку`);
-        } else {
-            this.isPlacingMode = false;
+            if (window.SoundFX) window.SoundFX.playSpell();
         }
+        
+        this.isPlacingMode = false;
+        return;
+    }
+    
+    // Существующий код для юнитов...
+    const lane = x < window.CONFIG.GAME.width / 2 ? 'left' : 'right';
     }
     
     updateSelectedCard(index) {
