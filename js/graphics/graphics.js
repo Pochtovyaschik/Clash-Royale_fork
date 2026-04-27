@@ -108,12 +108,14 @@
         for (let i = 0; i < 15; i++) {
             const waveY = Math.sin(this.waterOffset + i * 0.5) * 4;
             this.ctx.fillRect(30 + i * 60, centerY - 3 + waveY, 25, 3);
+        }
 
          // Волны
         for (let i = 0; i < 20; i++) {
             const waveY = Math.sin(this.waterOffset + i * 0.3) * 3;
             this.ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + Math.sin(this.waterOffset) * 0.1})`;
             this.ctx.fillRect(30 + i * 40, centerY - 3 + waveY, 25, 2);
+        }
     }
 
     drawBridge(x, y) {
