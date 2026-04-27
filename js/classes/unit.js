@@ -122,6 +122,10 @@ class Unit {
     }
     
     attack() {
+        if (this.target && this.target.hp <= 0) {
+            this.target = null;
+            this.targetType = null;
+        }
         if (!this.target) return;
         
         if (this.targetType === 'unit') {
