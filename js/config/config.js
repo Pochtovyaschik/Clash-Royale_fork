@@ -27,8 +27,8 @@ window.CONFIG = {
         towerDestroyed: 'assets/sounds/tower-down.mp3'
     },
     GAME: {
-        width: 900,
-        height: 600,
+        width: 800,
+        height: 500,
         maxElixir: 10,
         startElixir: 5,
         elixirRegenRate: 2.8, // секунды на 1 эликсир
