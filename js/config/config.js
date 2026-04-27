@@ -64,7 +64,7 @@ window.CONFIG = {
             damage: 60,
             range: 150,
             speed: 1,
-            attackSpeed: 1.2,
+            attackSpeed: 1.0,
             description: 'Атакует с расстояния',
             rarity: 'common'
         },
@@ -76,7 +76,7 @@ window.CONFIG = {
             damage: 120,
             range: 160,
             speed: 3,
-            attackSpeed: 1.5,
+            attackSpeed: 1.2,
             description: 'Мощная магическая атака',
             rarity: 'rare'
         }
