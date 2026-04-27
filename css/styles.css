@@ -7,7 +7,7 @@
 body {
     margin: 0;
     min-height: 100vh;
-    background: url('assets/images/arena/background.jpg') center/cover fixed;
+    background: url('assets/images/arena/background.jpg');
     display: flex;
     justify-content: center;
     align-items: center;
