@@ -237,6 +237,7 @@
             const cardHeight = 90;
             const startX = window.CONFIG.GAME.width / 2 - (cardWidth * deck.hand.length) / 2;
             const startY = window.CONFIG.GAME.height - 100;
+            const isSelected = (ui && ui.isPlacingMode && ui.selectedCardIndex === i);
             
             console.log(`Drawing ${deck.hand.length} cards at y=${startY}`);
          
@@ -251,8 +252,7 @@
                         this.ctx.shadowBlur = 0;
                     }
                 const card = deck.hand[i];
-                const x = startX + i * (cardWidth + 10);
-                const isSelected = (ui && ui.isPlacingMode && ui.selectedCardIndex === i);
+                const x = startX + i * (cardWidth + 10); 
                 const canAfford = gameState.elixir >= card.cost;
                 
                 // Рамка карты
