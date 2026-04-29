@@ -238,7 +238,7 @@
             const startX = window.CONFIG.GAME.width / 2 - (cardWidth * deck.hand.length) / 2;
             const startY = window.CONFIG.GAME.height - 100;
             const isSelected = (ui && ui.isPlacingMode && ui.selectedCardIndex === i);
-            
+         
             console.log(`Drawing ${deck.hand.length} cards at y=${startY}`);
          
             for (let i = 0; i < deck.hand.length; i++) {
