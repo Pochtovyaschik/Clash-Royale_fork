@@ -3,118 +3,202 @@
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 class Core {
     constructor(canvas, ctx) {
+        // Конструктор класса Core - инициализирует основные свойства игрового ядра
+        // canvas: HTMLCanvasElement - элемент canvas, на котором будет отображаться игра
+        // ctx: CanvasRenderingContext2D - контекст для рисования на canvas (позволяет рисовать фигуры, текст и т.д.)
         this.canvas = canvas;
         this.ctx = ctx;
-        this.lastTime = 0;
-        this.gameState = null;
-        this.graphics = null;
-        this.soundFX = null;
-        this.ui = null;
-        this.ai = null;
-        this.deck = null;
-        this.animationId = null;
+        this.lastTime = 0;           // Время последнего кадра в секундах (используется для расчета дельты времени)
+        this.gameState = null;       // Состояние игры (хранит все данные: юниты, башни, эликсир, активна ли игра)
+        this.graphics = null;        // Объект для отрисовки графики (башни, юниты, интерфейс, арена)
+        this.soundFX = null;         // Объект для управления звуковыми эффектами (атаки, спавн юнитов, победа)
+        this.ui = null;              // Объект пользовательского интерфейса (обработка нажатий на карты, кнопки)
+        this.ai = null;              // Объект искусственного интеллекта противника (управляет действиями врага)
+        this.deck = null;            // Колода карт игрока (содержит доступных для призыва юнитов)
+        this.animationId = null;     // ID анимационного фрейма для requestAnimationFrame (нужен для остановки цикла)
     }
     
-    init() {
+    async init() {
+        // Асинхронная инициализация игры - создает все компоненты и запускает игровой цикл
+        // async позволяет использовать await внутри, если понадобится загружать ресурсы (звуки, спрайты)
+
         console.log('🎮 Инициализация игры...');
         
-        // Инициализация компонентов
-        this.graphics = new Graphics(this.ctx);
-        this.soundFX = new SoundFX();
-        this.gameState = new GameState();
-        this.deck = new Deck();
-        this.ui = new UI(this.canvas, this.gameState, this.deck);
-        this.ai = new AI(this.gameState, this.deck);
+        // Инициализация компонентов - создаем экземпляры всех классов, необходимых для работы игры
+        this.graphics = new Graphics(this.ctx);     // Графический движок для отрисовки
+        this.soundFX = new SoundFX();               // Звуковой движок для воспроизведения эффектов
+        this.gameState = new GameState();           // Объект, хранящий текущее состояние игры
+        this.deck = new Deck();                     // Колода с картами юнитов
+        this.ui = new UI(this.canvas, this.gameState, this.deck);   // Интерфейс для взаимодействия с игроком
+        this.ai = new AI(this.gameState, this.deck); // ИИ, который управляет действиями противника
         
-        // Запуск игры
+        // Запуск игры - инициализируем начало битвы (сбрасываем здоровье башен, эликсир и т.д.)
         this.gameState.startBattle();
-        this.lastTime = performance.now() / 1000;
+        this.lastTime = performance.now() / 1000;   // Запоминаем текущее время для расчета дельты
         
         console.log('✅ Игра инициализирована!');
-        this.startLoop();
+        this.startLoop();                           // Запускаем игровой цикл
     }
     
     startLoop() {
+        // Запускает основной игровой цикл с использованием requestAnimationFrame
+        // requestAnimationFrame - браузерный метод, который вызывает функцию перед каждой перерисовкой экрана
+        // Вычисляет дельту времени между кадрами для плавной анимации и независимости от FPS
         const gameLoop = () => {
-            const now = performance.now() / 1000;
-            let delta = Math.min(0.033, now - this.lastTime);
+            const now = performance.now() / 1000;   // Текущее время в секундах
+            let delta = Math.min(0.033, now - this.lastTime);  // Ограничиваем дельту максимум 33мс (для предотвращения больших скачков)
+            // Если игра зависла, delta не будет больше 0.033, что предотвращает "телепортацию" юнитов
             this.lastTime = now;
             
-            this.update(delta, now);
-            this.render();
+            this.update(delta, now);    // Обновляем логику игры (движение, атаки, спавн)
+            this.render();              // Отрисовываем текущее состояние игры на canvas
             
-            this.animationId = requestAnimationFrame(gameLoop);
+            this.animationId = requestAnimationFrame(gameLoop);  // Запрашиваем следующий кадр
         };
         
-        gameLoop();
+        gameLoop();  // Стартуем цикл
     }
     
     update(delta, now) {
-        if (!this.gameState.isActive) return;
+        // Обновляет игровую логику: эликсир, AI, позиции юнитов, башни и проверку победы
+        // delta: число - время, прошедшее с последнего кадра (в секундах). Используется для плавного движения юнитов
+        // now: число - текущее время в секундах (используется для генерации эликсира и задержек AI)
         
-        // Обновление эликсира
+        if (!this.gameState.isActive) return;   // Если игра окончена (кто-то победил), не обновляем логику
+        
+        // Обновление эликсира - добавляем эликсир игроку и AI с течением времени
         this.gameState.updateElixir(now);
         
-        // Обновление AI
+        // Обновление AI - проверяем, может ли AI призвать юнита, и если да - призываем
         this.ai.update(now);
         
-        // Обновление юнитов
-        const units = this.gameState.getUnits();
-        const towers = this.gameState.towers;
+        // Обновление юнитов - перемещаем юнитов, проверяем атаки, применяем урон
+        const units = this.gameState.getUnits();   // Получаем массив всех юнитов на поле
+        const towers = this.gameState.towers;      // Получаем объект со всеми башнями (игрока и врага)
         
         for (let i = 0; i < units.length; i++) {
+            // Для каждого юнита вызываем его метод update, который:
+            // - перемещает юнита в зависимости от его стороны (влево или вправо)
+            // - ищет цель для атаки (вражеского юнита или башню)
+            // - наносит урон, если цель в радиусе атаки
             units[i].update(delta, units, towers);
         }
         
-        // Обновление башен
+        // Обновление башен - каждая башня проверяет, есть ли враги в радиусе, и атакует
         for (let tower of Object.values(towers)) {
             tower.update(delta, units, this.gameState);
         }
         
-        // Удаление мертвых юнитов
+        // Удаление мертвых юнитов - убираем из массива юнитов тех, у кого здоровье <= 0
         this.gameState.removeDeadUnits();
         
-        // Проверка победы
-        const winner = this.gameState.checkVictory();
+        // Проверка победы - смотрим, у какой стороны разрушена королевская башня
+        const winner = this.gameState.checkVictory();  // Возвращает 'player', 'enemy' или null
         if (winner && this.gameState.isActive) {
-            this.gameState.isActive = false;
+            this.gameState.isActive = false;  // Останавливаем игру, если есть победитель
+            // Здесь можно добавить звук победы/поражения
         }
     }
     
+    // Отрисовывает все игровые объекты: арену, башни, юнитов, эффекты и интерфейс
+// Вызывается каждый кадр после обновления логики для создания визуальной картинки
     render() {
+        // Проверяем, что графика и контекст инициализированы, иначе отрисовка невозможна
         if (!this.graphics || !this.ctx) return;
         
-        // Очистка
+        // Очищаем весь canvas от предыдущего кадра, чтобы избежать наложения изображений
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Отрисовка арены
+        // Отрисовка арены - рисуем фон, дорожки, траву, разделительную линию и декорации поля боя
         this.graphics.drawArena();
         
-        // Отрисовка башен
+        // Получаем объект со всеми башнями (игрока и врага) из состояния игры
         const towers = this.gameState.towers;
+        
+        // Отрисовка башен игрока (союзных) - левая и правая башни
+        // true означает, что башня принадлежит игроку (отображается в синих/зеленых тонах)
         this.graphics.drawTower(towers.playerLeft, true);
         this.graphics.drawTower(towers.playerRight, true);
-        this.graphics.drawKingTower(towers.playerKing);
+        
+        // Отрисовка королевской башни игрока с указанием стороны (true - союзная)
+        this.graphics.drawKingTower(towers.playerKing, true);
+        
+        // Отрисовка башен врага - левая и правая башни
+        // false означает, что башня принадлежит врагу (отображается в красных тонах)
         this.graphics.drawTower(towers.enemyLeft, false);
         this.graphics.drawTower(towers.enemyRight, false);
-        this.graphics.drawKingTower(towers.enemyKing);
         
-        // Отрисовка юнитов
+        // Отрисовка королевской башни врага с указанием стороны (false - вражеская)
+        this.graphics.drawKingTower(towers.enemyKing, false);
+        
+        // Получаем массив всех юнитов, находящихся на поле боя
         const units = this.gameState.getUnits();
+        
+        // Проходим по каждому юниту и отрисовываем его
+        // Отрисовываются: позиция, здоровье, тип юнита, команда (свои/враги)
         for (let unit of units) {
             this.graphics.drawUnit(unit);
         }
         
-        // Отрисовка UI
-        this.graphics.drawUI(this.gameState, this.deck, this.ui.selectedCardIndex);
+        // Отрисовка визуальных эффектов (взрывы, вспышки атак, частицы)
+        // Проверяем, существует ли глобальный объект Effects (добавляется из другого файла)
+        if (window.Effects) {
+            window.Effects.draw();  // Рисуем все активные эффекты на экране
+        }
+        
+        // Отрисовка пользовательского интерфейса
+        // Передаем: состояние игры, колоду карт, индекс выбранной карты и сам объект UI
+        // Объект UI нужен для отображения режима размещения (если активен)
+        this.graphics.drawUI(this.gameState, this.deck, this.ui.selectedCardIndex, this.ui);
+        
+        // Отрисовка индикатора режима размещения юнита (если игрок выбрал карту и ждет клика на поле)
+        if (this.ui.isPlacingMode) {
+            this.drawPlacementIndicator();  // Показываем подсказку и подсветку зоны призыва
+        }
+    }
+
+    /**
+     * Рисует индикатор режима размещения юнита на поле
+     * Вызывается только когда игрок выбрал карту и находится в режиме ожидания клика
+     * Показывает визуальную подсказку, куда можно кликнуть для призыва юнита
+     */
+    drawPlacementIndicator() {
+        // Устанавливаем полупрозрачный желтый фон для зоны призыва (нижняя половина поля)
+        this.ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+        // Устанавливаем желтую обводку для контура зоны призыва
+        this.ctx.strokeStyle = '#ffd700';
+        // Толщина линии обводки - 2 пикселя
+        this.ctx.lineWidth = 2;
+        
+        // Заливаем нижнюю половину поля полупрозрачным желтым цветом
+        // window.CONFIG.GAME.height / 2 - это вертикальная граница, разделяющая поле пополам
+        // Юнитов можно призывать только на своей половине поля
+        this.ctx.fillRect(0, window.CONFIG.GAME.height / 2, window.CONFIG.GAME.width, window.CONFIG.GAME.height / 2);
+        
+        // Рисуем желтую рамку вокруг нижней половины поля для привлечения внимания
+        this.ctx.strokeRect(0, window.CONFIG.GAME.height / 2, window.CONFIG.GAME.width, window.CONFIG.GAME.height / 2);
+        
+        // Текст подсказки для игрока - что нужно сделать для призыва юнита
+        this.ctx.fillStyle = '#ffd700';  // Золотистый цвет текста
+        this.ctx.font = 'bold 14px monospace';  // Жирный моноширинный шрифт 14px
+        this.ctx.shadowBlur = 0;  // Отключаем тень для текста (чтобы текст был четким)
+        
+        // Выводим текст подсказки в центре нижней части экрана
+        // Текст призывает игрока кликнуть на арене для призыва юнита
+        this.ctx.fillText('👉 Кликните на арене для призыва юнита 👈', 
+            window.CONFIG.GAME.width / 2 - 200,  // X координата (центр минус половина ширины текста)
+            window.CONFIG.GAME.height - 20);     // Y координата (20 пикселей от нижнего края)
     }
     
     stop() {
+        // Останавливает игровой цикл, отменяя текущую анимацию
+        // Используется при завершении игры или перезагрузке, чтобы освободить ресурсы
+        // Без этого вызова игра продолжала бы работать в фоне, потребляя процессор
         if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
+            cancelAnimationFrame(this.animationId);  // Отменяем запрошенный анимационный кадр
+            this.animationId = null;                 // Обнуляем ID для возможности перезапуска
         }
     }
 }
 
-window.Core = null;
+window.Core = null;  // Экспортируем класс в глобальную область видимости (для доступа из других файлов)
