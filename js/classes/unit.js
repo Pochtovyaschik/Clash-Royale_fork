@@ -50,6 +50,12 @@ class Unit {
                 }
             }
         }
+        if (!this.hasCrossedBridge) {
+            // Проверяем, достиг ли юнит моста
+            if (Math.abs(this.y - centerY) < 20) {
+                this.hasCrossedBridge = true;
+            }
+}
 
         // Обновляем кулдаун атаки
         if (this.attackCooldown > 0) {
@@ -157,6 +163,13 @@ class Unit {
                 this.x += Math.sign(dxToBridge) * Math.min(Math.abs(dxToBridge), this.speed);
             }
         }
+        if (!this.hasCrossedBridge) {
+            // Если не дошел до моста - двигаемся ТОЛЬКО по вертикали
+            const targetY = this.isPlayer ? centerY + 50 : centerY - 50;
+            const dy = targetY - this.y;
+            this.y += Math.sign(dy) * this.speed;
+            return;
+        }
     }
     
     moveToTower(towers) {
@@ -174,6 +187,13 @@ class Unit {
                 if (Math.abs(dxToBridge) > 5) {
                     this.x += Math.sign(dxToBridge) * Math.min(Math.abs(dxToBridge), this.speed);
                 }
+        }
+        if (!this.hasCrossedBridge) {
+            // Если не дошел до моста - двигаемся ТОЛЬКО по вертикали
+            const targetY = this.isPlayer ? centerY + 50 : centerY - 50;
+            const dy = targetY - this.y;
+            this.y += Math.sign(dy) * this.speed;
+            return;
         }
     }
 }
