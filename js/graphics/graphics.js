@@ -79,8 +79,8 @@
         this.drawRiver();
         
         // Мосты (деревянные текстуры)
-        this.drawBridge(150, 500, 100, 50);
-        this.drawBridge(750, 500, 100, 50);
+        this.drawBridge(150, 0, 100, 50);
+        this.drawBridge(750, 0, 100, 50);
     }
     
     drawBridge(x, y, width, height) {
