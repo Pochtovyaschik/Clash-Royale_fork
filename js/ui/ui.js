@@ -39,35 +39,39 @@ class UI {
     }
     
     // Новый метод: обработка клика по карте в руке
-    handleCardClick(index, card) {
-        if (!this.gameState.isActive) return;
-        
-        // Проверяем, хватает ли эликсира
-        if (!this.gameState.canDeploy(card.cost)) {
-            console.log(`❌ Не хватает эликсира! Нужно ${card.cost}, есть ${Math.floor(this.gameState.elixir)}`);
-            // Визуальная обратная связь
-            if (window.Effects) {
-                window.Effects.screenFlash('255,0,0', 0.2);
-            }
-            return;
-        }
-        
-        // Выбираем карту и активируем режим размещения
-        this.selectedCardIndex = this.deck.hand.indexOf(card);
-        this.isPlacingMode = true;
-        this.gameState.selectedCardIndex = this.selectedCardIndex;
-        
-        // Визуальная обратная связь - подсветка карты в graphics.js
-        
-        console.log(`🃏 Выбрана карта ${card.name} (${card.cost}⚡). Кликните на арене для призыва.`);
-        
-        // Сброс режима размещения через 5 секунд
-        if (this.placementTimeout) clearTimeout(this.placementTimeout);
-        this.placementTimeout = setTimeout(() => {
-            this.isPlacingMode = false;
-            console.log('⏰ Режим размещения отменен');
-        }, 5000);
+    // В методе handleCardClick добавьте в начало:
+handleCardClick(index, card) {
+    console.log('=== handleCardClick called ===');
+    console.log('Card:', card.name, 'Cost:', card.cost);
+    console.log('Game active:', this.gameState.isActive);
+    console.log('Current elixir:', this.gameState.elixir);
+    
+    if (!this.gameState.isActive) {
+        console.log('Game not active');
+        return;
     }
+    
+    if (!this.gameState.canDeploy(card.cost)) {
+        console.log(`❌ Не хватает эликсира! Нужно ${card.cost}, есть ${Math.floor(this.gameState.elixir)}`);
+        if (window.Effects) {
+            window.Effects.screenFlash('255,0,0', 0.2);
+        }
+        return;
+    }
+    
+    // Выбираем карту и активируем режим размещения
+    this.selectedCardIndex = this.deck.hand.indexOf(card);
+    this.isPlacingMode = true;
+    this.gameState.selectedCardIndex = this.selectedCardIndex;
+    
+    console.log(`🃏 Выбрана карта ${card.name} (${card.cost}⚡). Режим размещения: ${this.isPlacingMode}`);
+    
+    if (this.placementTimeout) clearTimeout(this.placementTimeout);
+    this.placementTimeout = setTimeout(() => {
+        this.isPlacingMode = false;
+        console.log('⏰ Режим размещения отменен');
+    }, 5000);
+}
     
     setupResetButton() {
         const btnReset = document.getElementById('btnReset');
@@ -83,36 +87,52 @@ class UI {
     }
     
     deployAtPosition(x, y) {
-    const card = this.deck.getCard(this.selectedCardIndex);
-    if (!card) {
-        this.isPlacingMode = false;
-        return;
-    }
-    
-    if (!this.gameState.canDeploy(card.cost, true)) {
-        if (window.Effects) window.Effects.addInsufficientEffect(x, y);
-        this.isPlacingMode = false;
-        return;
-    }
-    
-    // Проверка типа карты
-    if (card.type === 'spell') {
-        // Применяем заклинание
-        const spell = new Spell(card.id, card);
-        const hitCount = spell.cast(x, y, this.gameState);
-        
-        if (hitCount > 0) {
-            this.gameState.spendElixir(card.cost, true);
-            this.deck.useCard(this.selectedCardIndex);
-            if (window.SoundFX) window.SoundFX.playSpell();
+        const card = this.deck.getCard(this.selectedCardIndex);
+        if (!card) {
+            console.log('❌ Нет карты в этой позиции');
+            this.isPlacingMode = false;
+            return;
         }
         
-        this.isPlacingMode = false;
-        return;
-    }
-    
-    // Существующий код для юнитов...
-    const lane = x < window.CONFIG.GAME.width / 2 ? 'left' : 'right';
+        if (!this.gameState.canDeploy(card.cost)) {
+            console.log(`❌ Не хватает эликсира! Нужно ${card.cost}, есть ${Math.floor(this.gameState.elixir)}`);
+            this.isPlacingMode = false;
+            return;
+        }
+        
+        // Определяем дорожку по позиции X
+        const lane = x < window.CONFIG.GAME.width / 2 ? 'left' : 'right';
+        
+        // Корректируем Y для правильного положения на дорожке
+        let finalY = y;
+        if (lane === 'left') {
+            finalY = Math.max(window.CONFIG.GAME.height / 2 + 50, Math.min(window.CONFIG.GAME.height - 100, y));
+        } else {
+            finalY = Math.max(window.CONFIG.GAME.height / 2 + 50, Math.min(window.CONFIG.GAME.height - 100, y));
+        }
+        
+        // Создаем юнита
+        const unit = new Unit(
+            x, finalY, 
+            card.unitType, 
+            true,  // isPlayer
+            lane,
+            card  // ссылка на карту
+        );
+        
+        if (this.gameState.deployUnit(unit)) {
+            // Используем карту (удаляем из руки, добавляем в конец колоды)
+            this.deck.useCard(this.selectedCardIndex);
+            
+            // Выходим из режима размещения
+            this.isPlacingMode = false;
+            if (this.placementTimeout) clearTimeout(this.placementTimeout);
+            
+            if (window.SoundFX) window.SoundFX.playDeploy();
+            console.log(`✅ Призван ${card.name} (${card.cost}⚡) на ${lane} дорожку`);
+        } else {
+            this.isPlacingMode = false;
+        }
     }
     
     updateSelectedCard(index) {
