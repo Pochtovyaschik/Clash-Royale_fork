@@ -50,23 +50,23 @@ class GameState {
         console.log('⚔️ Битва началась!');
     }
     
-    updateElixir(now, isPlayer = true) {
-        if (!this.isActive) return;
-        
-        if (isPlayer) {
-            const delta = now - this.lastPlayerElixirTime;
-            if (delta >= window.CONFIG.GAME.elixirRegenRate) {
-                this.playerElixir = Math.min(this.playerElixir + 1, window.CONFIG.GAME.maxElixir);
-                this.lastPlayerElixirTime = now;
-            }
-        } else {
-            const delta = now - this.lastAIElixirTime;
-            if (delta >= window.CONFIG.GAME.elixirRegenRate) {
-                this.aiElixir = Math.min(this.aiElixir + 1, window.CONFIG.GAME.maxElixir);
-                this.lastAIElixirTime = now;
-            }
-        }
+    updateElixir(now) {
+    if (!this.isActive) return;
+    
+    // Обновление эликсира игрока
+    const playerDelta = now - (this.lastPlayerElixirTime || now);
+    if (playerDelta >= window.CONFIG.GAME.elixirRegenRate) {
+        this.playerElixir = Math.min(this.playerElixir + 1, window.CONFIG.GAME.maxElixir);
+        this.lastPlayerElixirTime = now;
     }
+    
+    // Обновление эликсира ИИ
+    const aiDelta = now - (this.lastAIElixirTime || now);
+    if (aiDelta >= window.CONFIG.GAME.elixirRegenRate) {
+        this.aiElixir = Math.min(this.aiElixir + 1, window.CONFIG.GAME.maxElixir);
+        this.lastAIElixirTime = now;
+    }
+}
     
     canDeploy(cost, isPlayer = true) {
         const elixir = isPlayer ? this.playerElixir : this.aiElixir;
