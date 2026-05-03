@@ -1,10 +1,6 @@
 class Unit {
     constructor(x, y, unitType, isPlayer, lane, card = null) {
 
-        this.attackType = stats.attackType || 'melee';
-        this.bridgeX = lane === 'left' ? 150 : 750;  // X координата моста
-        this.hasCrossedBridge = false;
-
         const stats = window.CONFIG.CARDS[unitType] || window.CONFIG.CARDS.knight;
 
         this.attackType = stats.attackType || 'melee';
