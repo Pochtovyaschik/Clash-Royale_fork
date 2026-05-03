@@ -46,13 +46,22 @@ class SoundFX {
      */
     loadAllSounds() {
         const soundPaths = window.CONFIG?.SOUNDS || {};
+        let loadedCount = 0;
+        const totalSounds = Object.keys(soundPaths).length;
+        
         for (let key in soundPaths) {
             const audio = new Audio();
             audio.src = soundPaths[key];
             audio.preload = 'auto';
+            audio.addEventListener('canplaythrough', () => {
+                loadedCount++;
+                if (loadedCount === totalSounds) {
+                    this.ready = true;
+                    console.log('✅ Все звуки загружены');
+                }
+            });
             this.sounds[key] = audio;
         }
-        console.log('✅ Все звуки загружены');
     }
     
     /**
@@ -65,7 +74,7 @@ class SoundFX {
      * sound.play('explosion');
      */
     play(soundName) {
-        if (!this.enabled) return;
+        if (!this.enabled || !this.ready) return;
         const sound = this.sounds[soundName];
         if (sound) {
             sound.currentTime = 0;
@@ -149,26 +158,6 @@ class SoundFX {
     setEnabled(value) {
         this.enabled = value;
     }
-}
-/**
- * Воспроизводит звук выбора карты
- */
-playCardSelect() {
-    this.play('cardSelect');
-}
-
-/**
- * Воспроизводит звук недостатка эликсира
- */
-playInsufficientElixir() {
-    this.play('insufficient');
-}
-
-/**
- * Воспроизводит звук победы над башней
- */
-playTowerDestroyed() {
-    this.play('towerDestroyed');
 }
 
 // Экспорт глобального экземпляра (будет создан позже)

@@ -1,203 +1,583 @@
+// ============================================================
+// effects.js - Полный менеджер визуальных эффектов
+// ============================================================
+
 /**
- * @class Graphics - Отвечает за визуализацию всех игровых элементов
- * @param {CanvasRenderingContext2D} ctx - 2D контекст Canvas для рисования
+ * Менеджер визуальных эффектов для игры
+ * Отвечает за частицы, вспышки, анимации и спецэффекты
  */
-class Graphics {
-    constructor(ctx) {
-        /** @type {CanvasRenderingContext2D} Контекст Canvas для рисования */
+ class EffectsManager {
+    constructor() {
+        /** @type {Array} Массив активных эффектов */
+        this.particles = [];
+        
+        /** @type {Array} Массив вспышек экрана */
+        this.flashes = [];
+        
+        /** @type {CanvasRenderingContext2D} Контекст для рисования */
+        this.ctx = null;
+        
+        /** @type {number} Время последнего обновления */
+        this.lastTime = 0;
+        
+        /** @type {boolean} Включены ли эффекты */
+        this.enabled = true;
+        
+        /** @type {Object} Конфигурация цветов для разных типов эффектов */
+        this.colors = {
+            hit: { primary: '255, 100, 50', secondary: '255, 50, 0' },
+            towerHit: { primary: '255, 200, 50', secondary: '255, 150, 0' },
+            deploy: { primary: '255, 215, 100', secondary: '255, 255, 200' },
+            explosion: { primary: '255, 100, 0', secondary: '255, 50, 0' },
+            cardSelect: { primary: '255, 215, 0', secondary: '255, 255, 100' },
+            insufficient: { primary: '255, 50, 50', secondary: '200, 0, 0' },
+            towerDestroyed: { primary: '100, 100, 255', secondary: '50, 50, 200' },
+            heal: { primary: '50, 255, 50', secondary: '100, 255, 100' }
+        };
+    }
+    
+    /**
+     * Инициализация менеджера эффектов
+     * @param {CanvasRenderingContext2D} ctx - Контекст Canvas
+     */
+    init(ctx) {
         this.ctx = ctx;
-        /** @type {Object.<string, HTMLImageElement>} Хранилище загруженных изображений */
-        this.images = {};
-        this.loadAllImages();
+        this.lastTime = performance.now() / 1000;
+        console.log('✨ EffectsManager инициализирован');
     }
     
     /**
-     * Загружает все изображения из глобальной конфигурации window.CONFIG.IMAGES
-     * Не ожидает завершения загрузки - проверка состояния при рисовании
+     * Добавляет эффект удара по юниту
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
      */
-    loadAllImages() {
-        const imagePaths = window.CONFIG?.IMAGES || {};
-        for (let key in imagePaths) {
-            const img = new Image();
-            img.src = imagePaths[key];
-            this.images[key] = img;
-        }
-    }
-    
-    /**
-     * Рисует одно изображение в указанной области
-     * @param {string} key - Ключ изображения в this.images
-     * @param {number} x - X-координата верхнего левого угла
-     * @param {number} y - Y-координата верхнего левого угла
-     * @param {number} w - Ширина области рисования
-     * @param {number} h - Высота области рисования
-     */
-    drawImage(key, x, y, w, h) {
-        const img = this.images[key];
-        if (img && img.complete && img.naturalWidth > 0) {
-            this.ctx.drawImage(img, x, y, w, h);
-        } else {
-            // Заглушка при отсутствии изображения
-            this.ctx.fillStyle = '#888';
-            this.ctx.fillRect(x, y, w, h);
-            this.ctx.fillStyle = '#fff';
-            this.ctx.font = '10px monospace';
-            this.ctx.fillText(key, x + 5, y + 15);
-        }
-    }
-    
-    /**
-     * Рисует изображение в виде плитки (тайла) для заполнения области
-     * @param {string} key - Ключ изображения
-     * @param {number} x - X-координата верхнего левого угла области
-     * @param {number} y - Y-координата верхнего левого угла области
-     * @param {number} width - Общая ширина заполняемой области
-     * @param {number} height - Общая высота заполняемой области
-     * @param {number} tileW - Ширина одной плитки
-     * @param {number} tileH - Высота одной плитки
-     */
-    drawTiledImage(key, x, y, width, height, tileW, tileH) {
-        const img = this.images[key];
-        if (!img || !img.complete) {
-            this.ctx.fillStyle = '#555';
-            this.ctx.fillRect(x, y, width, height);
-            return;
+    addHitEffect(x, y) {
+        if (!this.enabled) return;
+        
+        const particles = [];
+        const particleCount = 8 + Math.floor(Math.random() * 5);
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 100 + Math.random() * 150;
+            
+            particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 50,
+                life: 0.3 + Math.random() * 0.3,
+                maxLife: 0.6,
+                size: 2 + Math.random() * 4,
+                color: this.colors.hit
+            });
         }
         
-        for (let row = 0; row < height; row += tileH) {
-            for (let col = 0; col < width; col += tileW) {
-                const dw = Math.min(tileW, width - col);
-                const dh = Math.min(tileH, height - row);
-                this.ctx.drawImage(img, x + col, y + row, dw, dh);
+        this.particles.push({
+            type: 'hit',
+            particles: particles,
+            life: 0.6,
+            maxLife: 0.6,
+            x: x,
+            y: y
+        });
+    }
+    
+    /**
+     * Добавляет эффект призыва юнита
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
+     */
+    addDeployEffect(x, y) {
+        if (!this.enabled) return;
+        
+        // Круговой эффект
+        this.particles.push({
+            type: 'deploy',
+            x: x,
+            y: y,
+            radius: 30,
+            life: 0.4,
+            maxLife: 0.4,
+            scale: 1
+        });
+        
+        // Частицы призыва
+        const particles = [];
+        for (let i = 0; i < 12; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 80 + Math.random() * 120;
+            
+            particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 0.4 + Math.random() * 0.3,
+                maxLife: 0.7,
+                size: 3 + Math.random() * 4,
+                color: this.colors.deploy
+            });
+        }
+        
+        this.particles.push({
+            type: 'deployParticles',
+            particles: particles,
+            life: 0.7,
+            maxLife: 0.7
+        });
+    }
+    
+    /**
+     * Добавляет эффект попадания по башне
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
+     */
+    addTowerHitEffect(x, y) {
+        if (!this.enabled) return;
+        
+        const particles = [];
+        const particleCount = 12 + Math.floor(Math.random() * 8);
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 80 + Math.random() * 150;
+            
+            particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 80,
+                life: 0.4 + Math.random() * 0.3,
+                maxLife: 0.7,
+                size: 3 + Math.random() * 5,
+                color: this.colors.towerHit
+            });
+        }
+        
+        this.particles.push({
+            type: 'towerHit',
+            particles: particles,
+            life: 0.7,
+            maxLife: 0.7,
+            x: x,
+            y: y
+        });
+        
+        // Добавляем небольшую вспышку
+        this.screenFlash('255, 200, 50', 0.1);
+    }
+    
+    /**
+     * Добавляет эффект взрыва (для разрушения башен)
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
+     */
+    addExplosionEffect(x, y) {
+        if (!this.enabled) return;
+        
+        const particles = [];
+        const particleCount = 25 + Math.floor(Math.random() * 15);
+        
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 150 + Math.random() * 250;
+            
+            particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 0.5 + Math.random() * 0.5,
+                maxLife: 1.0,
+                size: 4 + Math.random() * 8,
+                color: this.colors.explosion
+            });
+        }
+        
+        this.particles.push({
+            type: 'explosion',
+            particles: particles,
+            life: 1.0,
+            maxLife: 1.0,
+            x: x,
+            y: y,
+            radius: 50
+        });
+        
+        // Большая вспышка экрана
+        this.screenFlash('255, 100, 0', 0.3);
+    }
+    
+    /**
+     * Добавляет эффект выбора карты
+     * @param {number} x - X координата карты
+     * @param {number} y - Y координата карты
+     */
+    addCardSelectEffect(x, y) {
+        if (!this.enabled) return;
+        
+        // Круговой эффект вокруг карты
+        this.particles.push({
+            type: 'cardSelect',
+            x: x + 35, // Центр карты
+            y: y + 45,
+            radius: 40,
+            life: 0.35,
+            maxLife: 0.35,
+            scale: 1
+        });
+        
+        // Сверкающие частицы
+        const particles = [];
+        for (let i = 0; i < 8; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 60 + Math.random() * 100;
+            
+            particles.push({
+                x: x + 35,
+                y: y + 45,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 0.3,
+                maxLife: 0.5,
+                size: 2 + Math.random() * 3,
+                color: this.colors.cardSelect
+            });
+        }
+        
+        this.particles.push({
+            type: 'cardSelectParticles',
+            particles: particles,
+            life: 0.5,
+            maxLife: 0.5
+        });
+    }
+    
+    /**
+     * Добавляет эффект недостатка эликсира
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
+     */
+    addInsufficientEffect(x, y) {
+        if (!this.enabled) return;
+        
+        const particles = [];
+        const particleCount = 15;
+        
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: x + (Math.random() - 0.5) * 40,
+                y: y + (Math.random() - 0.5) * 40,
+                vx: (Math.random() - 0.5) * 150,
+                vy: (Math.random() - 0.5) * 150 - 80,
+                life: 0.4 + Math.random() * 0.3,
+                maxLife: 0.7,
+                size: 2 + Math.random() * 4,
+                color: this.colors.insufficient
+            });
+        }
+        
+        this.particles.push({
+            type: 'insufficient',
+            particles: particles,
+            life: 0.7,
+            maxLife: 0.7
+        });
+        
+        // Красная вспышка
+        this.screenFlash('255, 0, 0', 0.15);
+    }
+    
+    /**
+     * Добавляет эффект разрушения башни
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
+     */
+    addTowerDestroyedEffect(x, y) {
+        if (!this.enabled) return;
+        
+        // Множественные взрывы
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+                this.addExplosionEffect(
+                    x + (Math.random() - 0.5) * 60,
+                    y + (Math.random() - 0.5) * 60
+                );
+            }, i * 100);
+        }
+        
+        // Специальные частицы разрушения
+        const particles = [];
+        for (let i = 0; i < 30; i++) {
+            particles.push({
+                x: x + (Math.random() - 0.5) * 80,
+                y: y + (Math.random() - 0.5) * 80,
+                vx: (Math.random() - 0.5) * 200,
+                vy: (Math.random() - 0.5) * 200 - 100,
+                life: 0.6 + Math.random() * 0.5,
+                maxLife: 1.1,
+                size: 3 + Math.random() * 7,
+                color: this.colors.towerDestroyed
+            });
+        }
+        
+        this.particles.push({
+            type: 'towerDestroyed',
+            particles: particles,
+            life: 1.1,
+            maxLife: 1.1
+        });
+        
+        // Яркая вспышка
+        this.screenFlash('255, 255, 255', 0.4);
+    }
+    
+    /**
+     * Добавляет эффект лечения (для будущих карт)
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
+     */
+    addHealEffect(x, y) {
+        if (!this.enabled) return;
+        
+        const particles = [];
+        for (let i = 0; i < 10; i++) {
+            particles.push({
+                x: x + (Math.random() - 0.5) * 30,
+                y: y + (Math.random() - 0.5) * 30,
+                vx: (Math.random() - 0.5) * 80,
+                vy: (Math.random() - 0.5) * 80 - 60,
+                life: 0.5,
+                maxLife: 0.8,
+                size: 2 + Math.random() * 4,
+                color: this.colors.heal
+            });
+        }
+        
+        this.particles.push({
+            type: 'heal',
+            particles: particles,
+            life: 0.8,
+            maxLife: 0.8
+        });
+    }
+    
+    /**
+     * Добавляет вспышку экрана
+     * @param {string} color - Цвет в формате "R,G,B"
+     * @param {number} duration - Длительность в секундах
+     */
+    screenFlash(color = '255,255,255', duration = 0.15) {
+        this.flashes.push({
+            color: color,
+            life: duration,
+            maxLife: duration
+        });
+    }
+    
+    /**
+     * Обновляет все эффекты
+     * @param {number} delta - Время, прошедшее с последнего кадра
+     */
+    update(delta) {
+        if (!this.enabled) return;
+        
+        // Ограничиваем delta для предотвращения скачков
+        const safeDelta = Math.min(delta, 0.033);
+        
+        // Обновляем частицы
+        for (let i = 0; i < this.particles.length; i++) {
+            const effect = this.particles[i];
+            effect.life -= safeDelta;
+            
+            if (effect.life <= 0) {
+                this.particles.splice(i, 1);
+                i--;
+                continue;
+            }
+            
+            // Обновляем частицы внутри эффекта
+            if (effect.particles) {
+                for (let p of effect.particles) {
+                    p.x += p.vx * safeDelta;
+                    p.y += p.vy * safeDelta;
+                    p.life -= safeDelta;
+                }
+            }
+            
+            // Обновляем масштаб круговых эффектов
+            if (effect.type === 'deploy' || effect.type === 'cardSelect') {
+                const progress = 1 - (effect.life / effect.maxLife);
+                effect.radius = effect.maxLife * 40 * (1 - progress);
+                effect.scale = 1 - progress;
+            }
+        }
+        
+        // Обновляем вспышки
+        for (let i = 0; i < this.flashes.length; i++) {
+            this.flashes[i].life -= safeDelta;
+            if (this.flashes[i].life <= 0) {
+                this.flashes.splice(i, 1);
+                i--;
             }
         }
     }
     
     /**
-     * Рисует игровое поле из трех слоев: трава, дорожка, река
-     * Размеры берутся из window.CONFIG.GAME
+     * Рисует все эффекты
      */
-    drawArena() {
-        // Фон - трава
-        this.drawTiledImage('grass', 0, 0, window.CONFIG.GAME.width, window.CONFIG.GAME.height, 50, 50);
-        // Дорожка
-        this.drawTiledImage('path', 0, 270, window.CONFIG.GAME.width, 60, 50, 50);
-        // Река
-        this.drawTiledImage('river', 0, 330, window.CONFIG.GAME.width, 20, 50, 20);
-    }
-    
-    /**
-     * Рисует обычную башню (игрока или врага)
-     * @param {Object} tower - Объект башни со свойствами x, y, hp, maxHp
-     * @param {boolean} isPlayer - true - башня игрока, false - башня врага
-     */
-    drawTower(tower, isPlayer) {
-        const imgKey = isPlayer ? 'playerTower' : 'enemyTower';
-        this.drawImage(imgKey, tower.x - 35, tower.y - 50, 70, 80);
+    draw() {
+        if (!this.ctx || !this.enabled) return;
         
-        // Полоса здоровья
-        const percent = tower.hp / tower.maxHp;
-        this.ctx.fillStyle = '#aa2e2e';
-        this.ctx.fillRect(tower.x - 30, tower.y - 60, 60, 6);
-        this.ctx.fillStyle = '#4eff6e';
-        this.ctx.fillRect(tower.x - 30, tower.y - 60, 60 * percent, 6);
-        
-        // Текст HP
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 10px monospace';
-        this.ctx.fillText(`❤️ ${Math.floor(tower.hp)}`, tower.x - 20, tower.y - 63);
-    }
-    
-    /**
-     * Рисует башню короля (центральную башню)
-     * @param {Object} tower - Объект башни со свойствами x, y, hp, maxHp
-     */
-    drawKingTower(tower) {
-        this.drawImage('kingTower', tower.x - 40, tower.y - 50, 80, 90);
-        
-        const percent = tower.hp / tower.maxHp;
-        this.ctx.fillStyle = '#aa2e2e';
-        this.ctx.fillRect(tower.x - 35, tower.y - 60, 70, 6);
-        this.ctx.fillStyle = '#4eff6e';
-        this.ctx.fillRect(tower.x - 35, tower.y - 60, 70 * percent, 6);
-        
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillText(`❤️ ${Math.floor(tower.hp)}`, tower.x - 20, tower.y - 63);
-    }
-    
-    /**
-     * Рисует игрового юнита с полосой здоровья и индикатором команды
-     * @param {Object} unit - Объект юнита со свойствами: type, x, y, hp, maxHp, isPlayer
-     */
-    drawUnit(unit) {
-        this.drawImage(unit.type, unit.x - 18, unit.y - 18, 36, 36);
-        
-        // Полоса здоровья
-        const percent = unit.hp / unit.maxHp;
-        this.ctx.fillStyle = '#aa2e2e';
-        this.ctx.fillRect(unit.x - 16, unit.y - 24, 32, 4);
-        this.ctx.fillStyle = '#4eff6e';
-        this.ctx.fillRect(unit.x - 16, unit.y - 24, 32 * percent, 4);
-        
-        // Индикатор команды (красный/синий кружок)
-        this.ctx.fillStyle = unit.isPlayer ? '#4488ff' : '#ff4444';
-        this.ctx.beginPath();
-        this.ctx.arc(unit.x - 15, unit.y - 15, 4, 0, Math.PI * 2);
-        this.ctx.fill();
-    }
-    
-    /**
-     * Рисует пользовательский интерфейс: эликсир-бар и карты в руке
-     * @param {Object} gameState - Состояние игры с полями elixir, maxElixir
-     * @param {Object} deck - Колода с массивом hand
-     * @param {number} selectedCardIndex - Индекс выбранной карты или null
-     */
-    drawUI(gameState, deck, selectedCardIndex) {
-        // Эликсир бар
-        const elixirPercent = gameState.elixir / window.CONFIG.GAME.maxElixir;
-        this.ctx.fillStyle = '#2c1a0e';
-        this.ctx.fillRect(15, 10, 220, 22);
-        this.ctx.fillStyle = '#d13aff';
-        this.ctx.fillRect(15, 10, 220 * elixirPercent, 22);
-        
-        this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 18px monospace';
-        this.ctx.fillText(`⚡ ${Math.floor(gameState.elixir)}/${window.CONFIG.GAME.maxElixir}`, 25, 28);
-        
-        // Отрисовка карт в руке
-        if (deck && deck.hand) {
-            const cardWidth = 70;
-            const cardHeight = 90;
-            const startX = window.CONFIG.GAME.width / 2 - (cardWidth * deck.hand.length) / 2;
-            const startY = window.CONFIG.GAME.height - 100;
+        // Рисуем частицы
+        for (let effect of this.particles) {
+            const alpha = Math.min(1, effect.life / (effect.maxLife || effect.life));
             
-            for (let i = 0; i < deck.hand.length; i++) {
-                const card = deck.hand[i];
-                const x = startX + i * (cardWidth + 10);
-                const isSelected = (selectedCardIndex === i);
+            // Круговые эффекты
+            if (effect.type === 'deploy') {
+                this.ctx.save();
+                this.ctx.shadowBlur = 0;
                 
-                // Рамка карты
-                this.ctx.fillStyle = isSelected ? '#ffd700' : '#333';
-                this.ctx.fillRect(x - 3, startY - 3, cardWidth + 6, cardHeight + 6);
-                this.ctx.fillStyle = '#1a1a2e';
-                this.ctx.fillRect(x, startY, cardWidth, cardHeight);
+                // Внешнее свечение
+                this.ctx.beginPath();
+                this.ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(${this.colors.deploy.primary}, ${alpha * 0.4})`;
+                this.ctx.fill();
                 
-                // Иконка юнита на карте
-                this.drawImage(card.unitType, x + cardWidth/2 - 15, startY + 15, 30, 30);
+                // Внутренний круг
+                this.ctx.beginPath();
+                this.ctx.arc(effect.x, effect.y, effect.radius * 0.6, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(${this.colors.deploy.secondary}, ${alpha * 0.7})`;
+                this.ctx.fill();
                 
-                // Стоимость
-                this.ctx.fillStyle = card.cost <= gameState.elixir ? '#4eff6e' : '#ff6666';
-                this.ctx.font = 'bold 16px monospace';
-                this.ctx.fillText(`⚡${card.cost}`, x + 5, startY + 25);
+                // Спарклы
+                for (let i = 0; i < 8; i++) {
+                    const angle = (Date.now() / 200 + i) * Math.PI * 2 / 8;
+                    const rad = effect.radius * 0.8;
+                    const sparkX = effect.x + Math.cos(angle) * rad;
+                    const sparkY = effect.y + Math.sin(angle) * rad;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(sparkX, sparkY, 2 * alpha, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(255, 255, 200, ${alpha})`;
+                    this.ctx.fill();
+                }
                 
-                // Название
-                this.ctx.fillStyle = '#ffd700';
-                this.ctx.font = '10px monospace';
-                this.ctx.fillText(card.name, x + cardWidth/2 - 20, startY + 65);
+                this.ctx.restore();
+                
+            } else if (effect.type === 'cardSelect') {
+                this.ctx.save();
+                this.ctx.shadowBlur = 0;
+                
+                // Золотое свечение
+                this.ctx.beginPath();
+                this.ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(${this.colors.cardSelect.primary}, ${alpha * 0.5})`;
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(effect.x, effect.y, effect.radius * 0.5, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(${this.colors.cardSelect.secondary}, ${alpha * 0.8})`;
+                this.ctx.fill();
+                
+                this.ctx.restore();
+                
+            } else if (effect.particles) {
+                // Эффекты с частицами
+                for (let p of effect.particles) {
+                    if (p.life <= 0) continue;
+                    
+                    const pAlpha = (p.life / p.maxLife) * alpha;
+                    const color = p.color || this.colors.hit;
+                    
+                    this.ctx.fillStyle = `rgba(${color.primary}, ${pAlpha * 0.9})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size * pAlpha, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // Добавляем свечение для ярких частиц
+                    if (p.size > 3) {
+                        this.ctx.fillStyle = `rgba(${color.secondary}, ${pAlpha * 0.5})`;
+                        this.ctx.beginPath();
+                        this.ctx.arc(p.x, p.y, p.size * pAlpha * 1.5, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                }
+            }
+        }
+        
+        // Рисуем вспышки
+        for (let flash of this.flashes) {
+            const alpha = flash.life / flash.maxLife;
+            this.ctx.fillStyle = `rgba(${flash.color}, ${alpha * 0.6})`;
+            this.ctx.fillRect(0, 0, window.CONFIG.GAME.width, window.CONFIG.GAME.height);
+        }
+    }
+    
+    /**
+     * Очищает все эффекты
+     */
+    clear() {
+        this.particles = [];
+        this.flashes = [];
+    }
+    
+    /**
+     * Включает/выключает эффекты
+     * @param {boolean} value
+     */
+    setEnabled(value) {
+        this.enabled = value;
+        if (!value) {
+            this.clear();
+        }
+    }
+    
+    /**
+     * Создает текстовый эффект (урон, исцеление)
+     * @param {number} x - X координата
+     * @param {number} y - Y координата
+     * @param {string} text - Текст
+     * @param {string} color - Цвет
+     */
+    addTextEffect(x, y, text, color = '#ff6666') {
+        if (!this.enabled) return;
+        
+        this.particles.push({
+            type: 'text',
+            text: text,
+            x: x,
+            y: y,
+            life: 0.8,
+            maxLife: 0.8,
+            color: color,
+            vy: -50
+        });
+    }
+    
+    /**
+     * Рисует текстовые эффекты (дополнительный метод для draw)
+     */
+    drawTextEffects() {
+        for (let effect of this.particles) {
+            if (effect.type === 'text') {
+                const alpha = effect.life / effect.maxLife;
+                this.ctx.font = `bold ${Math.floor(16 * (1 - alpha) + 12)}px monospace`;
+                this.ctx.fillStyle = effect.color;
+                this.ctx.shadowBlur = 0;
+                this.ctx.fillText(
+                    effect.text, 
+                    effect.x, 
+                    effect.y - (1 - alpha) * 30
+                );
             }
         }
     }
 }
 
-// Глобальный экземпляр
-window.Graphics = null;
+// Создаем глобальный экземпляр
+window.EffectsManager = EffectsManager;
+window.Effects = new EffectsManager();
+
+console.log('✅ Effects Manager загружен');

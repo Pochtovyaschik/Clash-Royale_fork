@@ -13,7 +13,9 @@ window.CONFIG = {
         playerTower: 'assets/images/towers/player_tower.png',
         enemyTower: 'assets/images/towers/enemy_tower.png',
         kingTower: 'assets/images/towers/king_tower.png',
-        kingEnemyTower: 'assets/images/towers/enemy_king_tower.png'
+        kingEnemyTower: 'assets/images/towers/king_enemy_tower.png',
+        playerTowerDestroyed: 'assets/images/towers/player_tower_destroyed.png',
+        enemyTowerDestroyed: 'assets/images/towers/enemy_tower_destroyed.png'
     },
     
     SOUNDS: {
@@ -27,19 +29,19 @@ window.CONFIG = {
         towerDestroyed: 'assets/sounds/tower-down.mp3'
     },
     GAME: {
-        width: 900,
-        height: 600,
+        width: 800,
+        height: 500,
         maxElixir: 10,
         startElixir: 5,
         elixirRegenRate: 2.8, // секунды на 1 эликсир
         
         towers: {
-            playerLeft: { x: 150, y: 450, maxHp: 1500, damage: 50, range: 100 },
-            playerRight: { x: 750, y: 450, maxHp: 1500, damage: 50, range: 100 },
-            playerKing: { x: 450, y: 500, maxHp: 3000, damage: 70, range: 120 },
-            enemyLeft: { x: 150, y: 150, maxHp: 1500, damage: 50, range: 100 },
-            enemyRight: { x: 750, y: 150, maxHp: 1500, damage: 50, range: 100 },
-            enemyKing: { x: 450, y: 100, maxHp: 3000, damage: 70, range: 120 }
+            playerLeft: { x: 200, y: 420, maxHp: 1500, damage: 50, range: 100 },
+            playerRight: { x: 700, y: 420, maxHp: 1500, damage: 50, range: 100 },
+            playerKing: { x: 450, y: 480, maxHp: 3000, damage: 70, range: 120 },
+            enemyLeft: { x: 200, y: 180, maxHp: 1500, damage: 50, range: 100 },
+            enemyRight: { x: 700, y: 180, maxHp: 1500, damage: 50, range: 100 },
+            enemyKing: { x: 450, y: 120, maxHp: 3000, damage: 70, range: 120 }
         }
     },
     
