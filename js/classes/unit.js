@@ -1,9 +1,10 @@
-// ============================================================
-// unit.js - Класс юнита
-// ============================================================
-
 class Unit {
     constructor(x, y, unitType, isPlayer, lane, card = null) {
+
+        this.attackType = stats.attackType || 'melee';
+        this.bridgeX = lane === 'left' ? 150 : 750;  // X координата моста
+        this.hasCrossedBridge = false;
+
         const stats = window.CONFIG.CARDS[unitType] || window.CONFIG.CARDS.knight;
 
         this.attackType = stats.attackType || 'melee';
@@ -32,31 +33,24 @@ class Unit {
     }
     
     update(delta, allUnits, towers) {
-        // Проверка перехода через мост
+        // В методе update():
         const centerY = window.CONFIG.GAME.height / 2;
-        
-        if (!this.hasCrossedBridge) {
-            // Юнит еще не перешел мост
-            if (this.isPlayer) {
-                // Игрок идет сверху вниз (от своих башен к мосту)
-                if (this.y <= centerY + 30 && this.y >= centerY - 30) {
-                    this.hasCrossedBridge = true;
-                }
-            }
-            else {
-                // Враг идет снизу вверх (от своих башен к мосту)
-                if (this.y <= centerY + 30 && this.y >= centerY - 30) {
-                    this.hasCrossedBridge = true;
-                }
-            }
-        }
-        if (!this.hasCrossedBridge) {
-            // Проверяем, достиг ли юнит моста
-            if (Math.abs(this.y - centerY) < 20) {
-                this.hasCrossedBridge = true;
-            }
-}
 
+        if (!this.hasCrossedBridge) {
+        // Проверяем, достиг ли юнит моста
+            if (Math.abs(this.y - centerY) < 20) {
+            this.hasCrossedBridge = true;
+          }
+        } 
+
+        // В moveToTarget() и moveToTower():
+        if (!this.hasCrossedBridge) {
+            // Если не дошел до моста - двигаемся ТОЛЬКО по вертикали
+            const targetY = this.isPlayer ? centerY + 50 : centerY - 50;
+            const dy = targetY - this.y;
+            this.y += Math.sign(dy) * this.speed;
+            return;
+        } 
         // Обновляем кулдаун атаки
         if (this.attackCooldown > 0) {
             this.attackCooldown -= delta;
@@ -77,15 +71,59 @@ class Unit {
         }
     }
     
+    moveToTarget() {
+        if (!this.target) return;
+        
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        
+        // Для дальних юнитов - останавливаемся на дистанции атаки
+        const stopDistance = this.attackType === 'ranged' ? this.attackRange * 0.8 : 15;
+        
+        if (dist > stopDistance) {
+            // Движение только вдоль дорожки (X не меняется)
+            const moveY = (dy / Math.abs(dy)) * this.speed;
+            this.y += moveY;
+            
+            // Коррекция X для удержания на дорожке
+            const targetX = this.bridgeX;
+            const dxToBridge = targetX - this.x;
+            if (Math.abs(dxToBridge) > 5) {
+                this.x += Math.sign(dxToBridge) * Math.min(Math.abs(dxToBridge), this.speed);
+            }
+        }
+    }
+    
+    moveToTower(towers) {
+        const targetTower = this.getTargetTower(towers);
+        if (!targetTower) return;
+        
+        const dy = targetTower.y - this.y;
+        
+        if (Math.abs(dy) > 5) {
+            const moveY = Math.sign(dy) * this.speed;
+            this.y += moveY;
+            
+            // Коррекция X для удержания на дорожке
+            const dxToBridge = this.bridgeX - this.x;
+            if (Math.abs(dxToBridge) > 5) {
+                this.x += Math.sign(dxToBridge) * Math.min(Math.abs(dxToBridge), this.speed);
+            }
+        }
+    }
+  
     findTarget(allUnits, towers) {
-        // Сначала ищем вражеских юнитов на той же дорожке
         let closestUnit = null;
         let closestDist = Infinity;
         
         for (let unit of allUnits) {
             if (unit.isPlayer !== this.isPlayer && unit.lane === this.lane && unit.hp > 0) {
                 const dist = Math.hypot(this.x - unit.x, this.y - unit.y);
-                if (dist < this.range && dist < closestDist) {
+                // Для дальних юнитов - атакуем в пределах range
+                // Для ближних - подходим вплотную
+                const attackDist = this.attackType === 'ranged' ? this.attackRange : this.attackRange;
+                if (dist < attackDist && dist < closestDist) {
                     closestDist = dist;
                     closestUnit = unit;
                 }
@@ -98,11 +136,11 @@ class Unit {
             return;
         }
         
-        // Если нет юнитов, атакуем башню
         const targetTower = this.getTargetTower(towers);
         if (targetTower && targetTower.hp > 0) {
             const dist = Math.hypot(this.x - targetTower.x, this.y - targetTower.y);
-            if (dist < this.range) {
+            const attackDist = this.attackType === 'ranged' ? this.attackRange : this.attackRange;
+            if (dist < attackDist) {
                 this.target = targetTower;
                 this.targetType = 'tower';
                 return;
@@ -111,6 +149,7 @@ class Unit {
         
         this.target = null;
         this.targetType = null;
+
     }
     
     getTargetTower(towers) {
@@ -201,5 +240,3 @@ class Unit {
         }
     }
 }
-
-window.Unit = null;
