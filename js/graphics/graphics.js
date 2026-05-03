@@ -61,22 +61,34 @@
         // Фон - трава
         this.drawTiledImage('grass', 0, 0, width, height, 50, 50);
         
-        // ... фон и река
+        // Левая дорожка (от левой башни к мосту)
+        this.drawPath(150, 450, 150, 350, 60);
+        // Мост слева через реку
+        this.drawPath(150, 320, 150, 280, 50);
+        // Левая дорожка врага
+        this.drawPath(150, 250, 150, 150, 60);
         
-        // ТОЛЬКО боковые дорожки!
-        // Левая дорожка
-        this.drawPath(200, 420, 200, 320, 60);  // от башни игрока к мосту
-        this.drawPath(200, 220, 200, 180, 60);  // от моста к башне врага
-        
-        // Правая дорожка  
-        this.drawPath(700, 420, 700, 320, 60);
-        this.drawPath(700, 220, 700, 180, 60);
-        
-        // НЕ РИСУЕМ центральную дорожку!
-   
+        // Правая дорожка (от правой башни к мосту)
+        this.drawPath(750, 450, 750, 350, 60);
+        // Мост справа через реку
+        this.drawPath(750, 320, 750, 280, 50);
+        // Правая дорожка врага
+        this.drawPath(750, 250, 750, 150, 60);
         
         // Река
         this.drawRiver();
+        
+        // Мосты (деревянные текстуры)
+        this.drawBridge(150, 300, 60, 30);
+        this.drawBridge(750, 300, 60, 30);
+    }
+    
+    drawBridge(x, y, width, height) {
+        this.ctx.fillStyle = '#8B5A2B';
+        this.ctx.fillRect(x - width/2, y, width, height);
+        this.ctx.fillStyle = '#A06B3A';
+        this.ctx.fillRect(x - width/2 + 5, y, width - 10, 5);
+        this.ctx.fillRect(x - width/2 + 5, y + height - 5, width - 10, 5);
     }
     
     drawPath(startX, startY, endX, endY, width) {
@@ -95,72 +107,24 @@
     drawRiver() {
         const width = window.CONFIG.GAME.width;
         const centerY = window.CONFIG.GAME.height / 2;
-        const riverWidth = 30;
-        
-        // Анимация воды
-        this.waterOffset = (this.waterOffset + 0.03) % (Math.PI * 2);
-        
-        // Река
+        const riverWidth = 25;
+    
+        this.waterOffset = (this.waterOffset + 0.02) % (Math.PI * 2);
         this.drawTiledImage('river', 0, centerY - riverWidth/2, width, riverWidth, 50, riverWidth);
-        
-        // Блики
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        for (let i = 0; i < 15; i++) {
-            const waveY = Math.sin(this.waterOffset + i * 0.5) * 4;
-            this.ctx.fillRect(30 + i * 60, centerY - 3 + waveY, 25, 3);
-        }
-
-         // Волны
-        for (let i = 0; i < 20; i++) {
-            const waveY = Math.sin(this.waterOffset + i * 0.3) * 3;
-            this.ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + Math.sin(this.waterOffset) * 0.1})`;
-            this.ctx.fillRect(30 + i * 40, centerY - 3 + waveY, 25, 2);
-        }
-    }
-
-    drawBridge(x, y) {
-        const bridgeWidth = 80;
-        const bridgeHeight = 20;
-        const bridgeY = y - 10;
-        
-        // Тень моста
-        this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        this.ctx.fillRect(x - bridgeWidth/2 + 2, bridgeY + 2, bridgeWidth, bridgeHeight);
-        
-        // Основная часть
-        this.ctx.fillStyle = '#8B5A2B';
-        this.ctx.fillRect(x - bridgeWidth/2, bridgeY, bridgeWidth, bridgeHeight);
-        
-        // Доски
-        this.ctx.fillStyle = '#A06B3A';
-        for (let i = 0; i < 7; i++) {
-            this.ctx.fillRect(x - bridgeWidth/2 + 5 + i * 10, bridgeY + 4, 6, 12);
+    
+        this.ctx.fillStyle = 'rgba(100, 200, 255, 0.4)';
+        for (let i = 0; i < 12; i++) {
+            const waveY = Math.sin(this.waterOffset + i * 0.5) * 3;
+            this.ctx.fillRect(40 + i * 70, centerY - 5 + waveY, 35, 4);
         }
     }
     
     drawTower(tower, isPlayer) {
-        if (tower.hp <= 0) {
-            // Рисуем обломки
-            this.ctx.fillStyle = '#5a4a3a';
-            for (let i = 0; i < 15; i++) {
-                this.ctx.fillRect(
-                    tower.x - 25 + Math.random() * 50,
-                    tower.y - 30 + Math.random() * 60,
-                    4 + Math.random() * 8,
-                    4 + Math.random() * 8
-                );
-            }
-            this.ctx.fillStyle = '#ff4444';
-            this.ctx.font = 'bold 14px monospace';
-            this.ctx.fillText('💀', tower.x - 10, tower.y - 20);
-            return;
-        }
         if (!tower) return;
         
         const isDestroyed = tower.hp <= 0;
-        const imgKey = isDestroyed 
-            ? (isPlayer ? 'playerTowerDestroyed' : 'enemyTowerDestroyed')
-            : (isPlayer ? 'playerTower' : 'enemyTower');
+        const imgKey = isDestroyed ? (isPlayer ? 'playerTowerDestroyed' : 'enemyTowerDestroyed') 
+                                   : (isPlayer ? 'playerTower' : 'enemyTower');
         
         this.drawImage(imgKey, tower.x - 35, tower.y - 50, 70, 80);
         
@@ -178,26 +142,19 @@
     }
     
     drawKingTower(tower, isPlayer = true) {
-        if (!tower) return;
-        
-        const isDestroyed = tower.hp <= 0;
-        const imgKey = isDestroyed 
-            ? (isPlayer ? 'kingTowerDestroyed' : 'kingEnemyTowerDestroyed')
-            : (isPlayer ? 'kingTower' : 'kingEnemyTower');
-        
+        if (!tower || tower.hp <= 0) return;
+        const imgKey = isPlayer ? 'kingTower' : 'kingEnemyTower';
         this.drawImage(imgKey, tower.x - 40, tower.y - 50, 80, 90);
         
-        if (!isDestroyed) {
-            const percent = tower.hp / tower.maxHp;
-            this.ctx.fillStyle = '#aa2e2e';
-            this.ctx.fillRect(tower.x - 35, tower.y - 60, 70, 6);
-            this.ctx.fillStyle = '#4eff6e';
-            this.ctx.fillRect(tower.x - 35, tower.y - 60, 70 * percent, 6);
-            
-            this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 10px monospace';
-            this.ctx.fillText(`❤️ ${Math.floor(tower.hp)}`, tower.x - 20, tower.y - 63);
-        }
+        const percent = tower.hp / tower.maxHp;
+        this.ctx.fillStyle = '#aa2e2e';
+        this.ctx.fillRect(tower.x - 35, tower.y - 60, 70, 6);
+        this.ctx.fillStyle = '#4eff6e';
+        this.ctx.fillRect(tower.x - 35, tower.y - 60, 70 * percent, 6);
+        
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = 'bold 10px monospace';
+        this.ctx.fillText(`❤️ ${Math.floor(tower.hp)}`, tower.x - 20, tower.y - 63);
     }
     
     drawUnit(unit) {
