@@ -217,17 +217,39 @@
     }
     
     drawUI(gameState, deck, selectedCardIndex, ui = null) {
-        // Эликсир бар
-        const elixirPercent = gameState.elixir / window.CONFIG.GAME.maxElixir;
+       // Отрисовка эликсир-бара с ячейками
+        const barWidth = 250;
+        const barHeight = 30;
+        const barX = window.CONFIG.GAME.width / 2 - barWidth / 2;
+        const barY = window.CONFIG.GAME.height - 250;
+        const cellCount = 10;
+        const cellWidth = barWidth / cellCount;
+        
+        // Фон бара
         this.ctx.fillStyle = '#2c1a0e';
-        this.ctx.fillRect(15, 10, 220, 22);
-        this.ctx.fillStyle = '#d13aff';
-        this.ctx.fillRect(15, 10, 220 * elixirPercent, 22);
+        this.ctx.fillRect(barX, barY, barWidth, barHeight);
         
+        // Ячейки эликсира
+        const filledCells = Math.floor(gameState.playerElixir);
+        for (let i = 0; i < cellCount; i++) {
+            const cellX = barX + i * cellWidth;
+            const isFilled = i < filledCells;
+            
+            this.ctx.fillStyle = isFilled ? '#d13aff' : '#4a2a6e';
+            this.ctx.fillRect(cellX + 1, barY + 1, cellWidth - 2, barHeight - 2);
+            
+            // Блик на полных ячейках
+            if (isFilled) {
+                this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                this.ctx.fillRect(cellX + 1, barY + 1, cellWidth - 2, 5);
+            }
+        }
+        
+        // Текст эликсира
         this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 18px monospace';
-        this.ctx.fillText(`⚡ ${Math.floor(gameState.elixir)}/${window.CONFIG.GAME.maxElixir}`, 25, 28);
-        
+        this.ctx.font = 'bold 14px monospace';
+        this.ctx.fillText(`⚡ ${Math.floor(gameState.playerElixir)}/${window.CONFIG.GAME.maxElixir}`, 
+            barX + barWidth + 10, barY + 22);
         // СБРАСЫВАЕМ ОБЛАСТИ КАРТ
         this.lastCardAreas = [];
         
@@ -239,20 +261,11 @@
             const startY = window.CONFIG.GAME.height - 100;
             
             console.log(`Drawing ${deck.hand.length} cards at y=${startY}`);
-         
+            
             for (let i = 0; i < deck.hand.length; i++) {
-                const isSelected = (ui && ui.isPlacingMode && ui.selectedCardIndex === i);
-                if (isSelected) {
-                        // Золотая рамка
-                        this.ctx.shadowBlur = 15;
-                        this.ctx.shadowColor = '#ffd700';
-                        this.ctx.strokeStyle = '#ffd700';
-                        this.ctx.lineWidth = 3;
-                        this.ctx.strokeRect(x - 3, startY - 3, cardWidth + 6, cardHeight + 6);
-                        this.ctx.shadowBlur = 0;
-                    }
                 const card = deck.hand[i];
-                const x = startX + i * (cardWidth + 10); 
+                const x = startX + i * (cardWidth + 10);
+                const isSelected = (ui && ui.isPlacingMode && ui.selectedCardIndex === i);
                 const canAfford = gameState.elixir >= card.cost;
                 
                 // Рамка карты
@@ -301,6 +314,28 @@
                     window.CONFIG.GAME.width / 2 - 100, 
                     window.CONFIG.GAME.height - 15);
             }
+        }
+
+        // Следующая карта
+        if (deck && deck.allCards && deck.allCards.length > 0) {
+            const nextCard = deck.allCards[0];
+            const nextCardX = window.CONFIG.GAME.width - 90;
+            const nextCardY = window.CONFIG.GAME.height - 100;
+            
+            this.ctx.fillStyle = '#333';
+            this.ctx.fillRect(nextCardX - 3, nextCardY - 3, 76, 96);
+            this.ctx.fillStyle = '#1a1a2e';
+            this.ctx.fillRect(nextCardX, nextCardY, 70, 90);
+            
+            this.drawImage(nextCard.unitType, nextCardX + 20, nextCardY + 15, 30, 30);
+            
+            this.ctx.fillStyle = '#aaa';
+            this.ctx.font = 'bold 16px monospace';
+            this.ctx.fillText(`⚡${nextCard.cost}`, nextCardX + 5, nextCardY + 25);
+            
+            this.ctx.fillStyle = '#888';
+            this.ctx.font = '10px monospace';
+            this.ctx.fillText('Следующая', nextCardX + 5, nextCardY + 80);
         }
     }
 }
