@@ -1,4 +1,5 @@
 class Core{
+    // подключение файлов
     constructor(canvas, ctx){
         this.canvas = canvas;
         this.ctx = ctx;
@@ -11,9 +12,10 @@ class Core{
         this.animationId = null
     }
 
-
+    
+    // запуск игры 
     async init() {
-        console.log("🎮инициализация игры...0")
+        console.log("🎮инициализация игры...")
         
 
         this.graphics = new Graphics(this.ctx)
@@ -30,7 +32,7 @@ class Core{
     };
         
 
-
+    // игровой цикл
     startLoop() {
         const gameloop = () => {
             const now = performance.now() / 1000;
@@ -43,4 +45,20 @@ class Core{
         };
         gameloop(); 
     }
+    
+    // расчёт отрисовки кадров(не доделан)
+    render() {
+        if (!this.graphics || !this.ctx) return;
+
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.graphics.drawArena();
+
+        this.graphics.drawUI(this.gameState, this.ui);
+
+        if (window.Effects) {
+            window.Effects.draw();
+        }
+        // далее доделать ещё есть не все переменые...
+    }
+
 }
