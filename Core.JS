@@ -23,7 +23,6 @@ class Core{
         this.gameState = new GameState();
         this.ui = new UI(this.canvas, this.gameState);
         this.ai = new AI(this.gameState);
-
         this.gameState.startBattle();
         this.lastTime = performance.now() / 1000;
 
@@ -46,6 +45,19 @@ class Core{
         gameloop(); 
     }
     
+
+    update(delta, now) {
+        if (!this.gameState.isActive) return;
+        this.ai.update(now);
+
+
+        const winner = this.gameState.checkVictory();
+        if (winner && this.gameState.isActive) {
+            this.gameState.isActive = false;
+        }
+    }
+
+
     // расчёт отрисовки кадров(не доделан)
     render() {
         if (!this.graphics || !this.ctx) return;
@@ -61,4 +73,10 @@ class Core{
         // далее доделать ещё есть не все переменые...
     }
 
+    stop() {
+        if (this.animationId){
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
 }
