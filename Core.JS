@@ -10,6 +10,7 @@ class Core{
         this.ui = null
         this.ai = null
         this.animationId = null
+        this.player = null
     }
 
     
@@ -17,7 +18,9 @@ class Core{
     async init() {
         console.log("🎮инициализация игры...")
         
-
+        this.canvas = window.render
+        this.ctx = this.canvas.init();
+        this.player = window.Player
         this.graphics = new Graphics(this.ctx)
         this.soundFX = new SoundFX();
         this.gameState = new GameState();
@@ -51,6 +54,13 @@ class Core{
         this.ai.update(now);
 
 
+        
+        const gameloop = () => {
+            requestAnimationFrame(gameloop)
+            this.ctx.draw()
+        }
+        gameloop
+
         const winner = this.gameState.checkVictory();
         if (winner && this.gameState.isActive) {
             this.gameState.isActive = false;
@@ -80,3 +90,4 @@ class Core{
         }
     }
 }
+const core = new Core();
